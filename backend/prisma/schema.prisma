@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo para guardar os USUÁRIOS do sistema (Médicos e Secretários)
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String   // A senha será guardada criptografada aqui
+  phone     String?
+  role      String   // Vai guardar "Médico" ou "Secretário"
+  crm       String?  // Opcional, pois secretários não têm CRM
+
+  createdAt DateTime @default(now())
+
+  // Relação: Um usuário (se for médico) pode ter vários agendamentos
+  appointmentsAsDoctor Appointment[]
+}
+
+// Modelo para guardar os PACIENTES da clínica
+model Patient {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?  @unique
+  phone     String?
+  createdAt DateTime @default(now())
+
+  // Relação: Um paciente pode ter vários agendamentos
+  appointments Appointment[]
+}
+
+// Modelo para os AGENDAMENTOS
+model Appointment {
+  id     Int      @id @default(autoincrement())
+  date   DateTime
+  status String   // Ex: "PENDING", "CONFIRMED", "CANCELED"
+
+  // Relação: O agendamento pertence a um paciente
+  patient   Patient @relation(fields: [patientId], references: [id])
+  patientId Int
+
+  // Relação: O agendamento é de um médico (que é um Usuário com a função "Médico")
+  doctor   User @relation(fields: [doctorId], references: [id])
+  doctorId Int
+}
