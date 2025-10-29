@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Define o layout principal da aplicação */
+.app-container {
+  display: flex;
+}
+
+/* Define a área principal à direita da sidebar */
+.content-area {
+  flex-grow: 1; /* Faz a área de conteúdo ocupar o resto da tela */
+  margin-left: 250px; /* Mesma largura da sidebar para não ficar embaixo dela */
+  height: 100vh; /* Ocupa a altura inteira da tela */
+  
+  /* Organiza o Header e o conteúdo da página em uma coluna */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Esta classe DEVE ser usada como o container principal 
+  DENTRO de cada componente de página (ex: Dashboard.js, Agenda.js)
+*/
+.page-content {
+  flex-grow: 1; /* Faz o conteúdo ocupar todo o espaço abaixo do Header */
+  padding: 2rem;
+  background-color: #f8f9fa; /* Um fundo cinza bem claro */
+  
+  /* Adiciona rolagem vertical apenas a esta área, se necessário */
+  overflow-y: auto;
+}

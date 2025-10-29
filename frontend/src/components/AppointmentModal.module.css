@@ -1,0 +1,104 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 2rem;
+  color: #343a40;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.formGroup p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #343a40;
+}
+
+.formGroup select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.modalActions button {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancelButton {
+  background-color: #f1f3f5;
+  color: #495057;
+}
+
+.cancelButton:hover {
+  background-color: #e9ecef;
+}
+
+.saveButton {
+  background-color: #830021; /* Sua cor principal */
+  color: white;
+}
+
+.saveButton:hover {
+  background-color: #64000f;
+}
+
+.deleteButton {
+    background-color: #f8d7da;
+    color: #842029;
+    font-weight: 600;
+}
+
+.deleteButton:hover {
+    background-color: #f5c2c7;
+}
+
+.error {
+    color: #dc3545;
+    font-weight: 500;
+    margin-top: 1rem;
+    text-align: center;
+}

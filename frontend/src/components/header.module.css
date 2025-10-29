@@ -1,0 +1,104 @@
+/* frontend/src/components/Header.module.css */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e9ecef;
+  width: 100%;
+  height: 70px;
+}
+
+/* Estilo base para as 3 seções (esquerda, centro, direita) */
+.headerSection {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1; /* Cada seção tenta ocupar 1/3 do espaço */
+}
+
+/* Alinhamentos específicos para cada seção */
+.leftSection {
+  justify-content: flex-start; /* Alinha o perfil à esquerda */
+}
+
+.centerSection {
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #343a40;
+}
+
+.rightSection {
+  justify-content: flex-end; /* Alinha as ações à direita */
+}
+
+/* Data e Hora em Linha */
+.dateTime {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap; /* Impede que a data quebre a linha */
+}
+
+/* Estilo para os ícones de ação */
+.actionIcon {
+  font-size: 1.3rem;
+  color: #6c757d;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.actionIcon:hover {
+  color: #343a40;
+}
+
+/* Perfil do Usuário (agora como um link) */
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #495057;
+  text-decoration: none; /* Remove sublinhado do link */
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.userProfile:hover {
+  background-color: #f1f3f5;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap; /* Impede que o nome quebre a linha */
+}
+
+.userInfo strong {
+  font-weight: 600;
+}
+
+.userInfo small {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* Botão de Logout dedicado */
+.logoutButton {
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.logoutButton:hover {
+  background-color: #f8d7da; /* Fundo vermelho claro no hover */
+  color: #842029; /* Cor vermelha escura */
+}
