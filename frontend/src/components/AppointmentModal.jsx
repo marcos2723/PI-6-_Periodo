@@ -1,23 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import styles from './AppointmentModal.module.css';
+import styles from './AppointmentModal.module.css'; // Certifique-se que este CSS existe
 import format from 'date-fns/format';
 
 const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
-  // Estados para guardar os dados dos dropdowns e do formulário
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [error, setError] = useState('');
 
+  // --- FUNÇÃO CORRIGIDA ---
   // Busca as listas de pacientes e médicos quando o modal abre
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem('token'); // 1. Pega o token
+        if (!token) throw new Error('Usuário não autenticado.');
+
+        // 2. Adiciona o token em TODAS as requisições
         const [patientsRes, doctorsRes] = await Promise.all([
-          fetch('http://localhost:3001/api/patients'),
-          fetch('http://localhost:3001/api/doctors')
+          fetch('http://localhost:3001/api/patients', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch('http://localhost:3001/api/doctors', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
         ]);
+
+        if (!patientsRes.ok || !doctorsRes.ok) {
+            throw new Error('Falha ao carregar dados de pacientes ou médicos.');
+        }
+
         const patientsData = await patientsRes.json();
         const doctorsData = await doctorsRes.json();
         setPatients(patientsData);
@@ -29,6 +42,7 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
     fetchData();
   }, []);
 
+  // --- FUNÇÃO CORRIGIDA ---
   // Função para salvar um novo agendamento
   const handleSave = async () => {
     setError('');
@@ -38,9 +52,13 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
     }
 
     try {
+      const token = localStorage.getItem('token'); // 1. Pega o token
       const response = await fetch('http://localhost:3001/api/appointments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // 2. Adiciona o token
+        },
         body: JSON.stringify({
           patientId: selectedPatient,
           doctorId: selectedDoctor,
@@ -56,13 +74,18 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
     }
   };
 
+  // --- FUNÇÃO CORRIGIDA ---
   // Função para deletar um agendamento existente
   const handleDelete = async () => {
     if (!window.confirm('Tem certeza que deseja cancelar este agendamento?')) return;
 
     try {
+        const token = localStorage.getItem('token'); // 1. Pega o token
         const response = await fetch(`http://localhost:3001/api/appointments/${eventInfo.id}`, {
             method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}` // 2. Adiciona o token
+            },
         });
         if (!response.ok) throw new Error('Falha ao cancelar agendamento.');
         
@@ -72,7 +95,8 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
         setError(err.message);
     }
   };
-
+  
+  // (O 'return' do JSX continua o mesmo, pois a lógica de UI não mudou)
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
@@ -83,7 +107,6 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
             <p>{`${format(eventInfo.start, 'dd/MM/yyyy HH:mm')} - ${format(eventInfo.end, 'HH:mm')}`}</p>
         </div>
         
-        {/* Se for um novo agendamento, mostra os selects */}
         {eventInfo.isNew ? (
           <>
             <div className={styles.formGroup}>
@@ -102,23 +125,20 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
             </div>
           </>
         ) : (
-            // Se for um agendamento existente, mostra apenas o nome
             <div className={styles.formGroup}>
                 <label>Paciente:</label>
-                <p>{eventInfo.title}</p>
+                <p>{eventInfo.title.replace('Consulta - ', '')}</p>
             </div>
         )}
 
         {error && <p className={styles.error}>{error}</p>}
         
         <div className={styles.modalActions}>
-          {/* Botão de deletar só aparece para eventos existentes */}
           {!eventInfo.isNew && (
             <button onClick={handleDelete} className={styles.deleteButton}>Cancelar Agendamento</button>
           )}
-          <div style={{flex: 1}}></div> {/* Espaçador para empurrar os botões para a direita */}
+          <div style={{flex: 1}}></div>
           <button type="button" onClick={onClose} className={styles.cancelButton}>Fechar</button>
-          {/* Botão de salvar só aparece para novos agendamentos */}
           {eventInfo.isNew && (
             <button onClick={handleSave} className={styles.saveButton}>Agendar</button>
           )}

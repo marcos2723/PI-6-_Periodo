@@ -1,5 +1,3 @@
-// backend/middleware/auth.js
-require('dotenv').config(); // Garante que o JWT_SECRET está carregado
 const jwt = require('jsonwebtoken');
 
 const authenticateToken = (req, res, next) => {
@@ -17,4 +15,4 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-module.exports = { authenticateToken }; // Exporte a função
+module.exports = { authenticateToken };

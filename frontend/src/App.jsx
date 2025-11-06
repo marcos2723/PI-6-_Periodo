@@ -2,19 +2,15 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // --- 1. IMPORTAÇÕES ---
-// Páginas de Autenticação
+// (Estas importações estão baseadas no seu código e na sua estrutura de arquivos)
 import LoginPage from './components/login/login.jsx';
 import Cadastro from './components/login/cadastro.jsx';
-
-// Componentes do Layout Principal
 import Sidebar from './components/Sidebar.jsx';
 import Header from './components/header.js';
-
-// Páginas do Sistema
 import Profile from './components/profile.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import Agenda from './components/Agenda.js';
-import Pacientes from './components/Pacientes.js';
+import Pacientes from './components/pacientes/Pacientes.js';
 import VisaoGeral from './components/Financeiro/VisaoGeral.js';
 import ContasPagar from './components/Financeiro/ContasPagar.js';
 import Movimentacao from './components/Financeiro/Movimentacao.js';
@@ -28,37 +24,37 @@ import Saida from './components/estoque/Saida.js';
 // Estilos globais
 import './App.css'; 
 
-// --- 2. LAYOUT PRINCIPAL DO SISTEMA ---
+// --- 2. LAYOUT PRINCIPAL DO SISTEMA (PRIVADO) ---
+// (Agora sem as propriedades 'title' e sem as rotas de login/cadastro)
 const MainLayout = ({ onLogout }) => (
   <div className="app-container">
     <Sidebar />
     <main className="content-area">
+      <Header onLogout={onLogout} /> {/* Header agora fica fora das rotas */}
       <Routes>
-        <Route path="/" element={<><Header onLogout={onLogout} /><Dashboard /></>} />
-        <Route path="/agenda" element={<><Header onLogout={onLogout} /><Agenda /></>} />
-        <Route path="/pacientes" element={<><Header onLogout={onLogout} /><Pacientes /></>} />
-        <Route path="/perfil" element={<><Header onLogout={onLogout} /><Profile /></>} />
-        <Route path="/cadastro" element={<><Header onLogout={onLogout} /><Cadastro /></>} />
-        <Route path="/login" element={<><Header onLogout={onLogout} /><LoginPage /></>} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/agenda" element={<Agenda />} />
+        <Route path="/pacientes" element={<Pacientes />} />
+        <Route path="/perfil" element={<Profile />} />
         
-        {/* Rotas do Financeiro */}
-        <Route path="/financeiro/visao-geral" element={<><Header onLogout={onLogout} /><VisaoGeral /></>} />
-        <Route path="/financeiro/contas-a-pagar" element={<><Header onLogout={onLogout} /><ContasPagar /></>} />
-        <Route path="/financeiro/movimentacao" element={<><Header onLogout={onLogout} /><Movimentacao /></>} />
-        <Route path="/financeiro/contas-a-receber" element={<><Header onLogout={onLogout} /><ContasReceber /></>} />
-        <Route path="/financeiro/orcamentos" element={<><Header onLogout={onLogout} /><Orcamentos /></>} />
-        <Route path="/financeiro/recibos" element={<><Header onLogout={onLogout} /><Recibos /></>} />
+        {/* Rotas do Financeiro (usando os caminhos corretos) */}
+        <Route path="/financeiro/visao-geral" element={<VisaoGeral />} />
+        <Route path="/financeiro/contas-a-pagar" element={<ContasPagar />} />
+        <Route path="/financeiro/movimentacao" element={<Movimentacao />} />
+        <Route path="/financeiro/contas-a-receber" element={<ContasReceber />} />
+        <Route path="/financeiro/orcamentos" element={<Orcamentos />} />
+        <Route path="/financeiro/recibos" element={<Recibos />} />
 
         {/* Rotas do Estoque */}
-        <Route path="/estoque/produtos" element={<><Header onLogout={onLogout} /><Produtos /></>} />
-        <Route path="/estoque/entrada" element={<><Header onLogout={onLogout} /><Entrada /></>} />
-        <Route path="/estoque/saida" element={<><Header onLogout={onLogout} /><Saida /></>} />
+        <Route path="/estoque/produtos" element={<Produtos />} />
+        <Route path="/estoque/entrada" element={<Entrada />} />
+        <Route path="/estoque/saida" element={<Saida />} />
       </Routes>
     </main>
   </div>
 );
 
-// --- 3. COMPONENTE PRINCIPAL APP ---
+// --- 3. COMPONENTE PRINCIPAL APP (CONTROLA O ACESSO) ---
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
@@ -73,12 +69,14 @@ function App() {
     <Router>
       <Routes>
         {!isAuthenticated ? (
+          // --- ROTAS PÚBLICAS (Se não estiver logado) ---
           <>
             <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </>
         ) : (
+          // --- ROTAS PRIVADAS (Se estiver logado) ---
           <Route path="/*" element={<MainLayout onLogout={handleLogout} />} />
         )}
       </Routes>
