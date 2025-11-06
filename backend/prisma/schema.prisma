@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,45 +7,103 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo para guardar os USUÁRIOS do sistema (Médicos e Secretários)
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  password  String   // A senha será guardada criptografada aqui
-  phone     String?
-  role      String   // Vai guardar "Médico" ou "Secretário"
-  crm       String?  // Opcional, pois secretários não têm CRM
-
-  createdAt DateTime @default(now())
-
-  // Relação: Um usuário (se for médico) pode ter vários agendamentos
+  id                   Int           @id @default(autoincrement())
+  email                String        @unique
+  name                 String
+  password             String
+  phone                String?
+  role                 String
+  crm                  String?
+  createdAt            DateTime      @default(now())
   appointmentsAsDoctor Appointment[]
+
+  // ADICIONE ESTA LINHA ABAIXO
+  stockMovements       StockMovement[]
 }
 
-// Modelo para guardar os PACIENTES da clínica
 model Patient {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String?  @unique
-  phone     String?
-  createdAt DateTime @default(now())
-
-  // Relação: Um paciente pode ter vários agendamentos
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String?       @unique
+  phone        String?
+  createdAt    DateTime      @default(now())
   appointments Appointment[]
 }
 
-// Modelo para os AGENDAMENTOS
 model Appointment {
-  id     Int      @id @default(autoincrement())
-  date   DateTime
-  status String   // Ex: "PENDING", "CONFIRMED", "CANCELED"
-
-  // Relação: O agendamento pertence a um paciente
-  patient   Patient @relation(fields: [patientId], references: [id])
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  status    String
   patientId Int
+  doctorId  Int
+  doctor    User     @relation(fields: [doctorId], references: [id])
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
+// ----------------------------------------------
+// ADICIONE OS NOVOS MODELS ABAIXO
+// ----------------------------------------------
 
-  // Relação: O agendamento é de um médico (que é um Usuário com a função "Médico")
-  doctor   User @relation(fields: [doctorId], references: [id])
-  doctorId Int
+// 1. O Catálogo de Produtos (O que é o item)
+model Product {
+  id              Int     @id @default(autoincrement())
+  name            String  // Nome do produto (ex: "Seringa Descartável 5ml")
+  description     String? // Descrição mais longa
+  sku             String  @unique // Código interno/SKU único
+  category        String? // Categoria (ex: "Medicamento", "Material de Consumo")
+  unitMeasure     String  // Unidade de medida principal (ex: "UN", "CX", "ML")
+  minStockLevel   Int     @default(0) // Nível de estoque mínimo para alerta
+  location        String? // Localização física (ex: "Prateleira A-01")
+  
+  // Rastreabilidade (configuração do produto)
+  controlsLot     Boolean @default(true) // Este produto exige controle de lote?
+  controlsExpiry  Boolean @default(true) // Este produto exige controle de validade?
+  
+  // Relacionamentos
+  lots      StockLot[]
+  movements StockMovement[]
+}
+
+// 2. O Lote de Estoque (O item físico com validade e quantidade)
+model StockLot {
+  id              Int       @id @default(autoincrement())
+  lotNumber       String    // Número do Lote fornecido pelo fabricante
+  expiryDate      DateTime? // Data de Validade
+  initialQuantity Int       // Quantidade que entrou neste lote
+  currentQuantity Int       // Quantidade atual (será debitada nas saídas)
+  entryDate       DateTime  @default(now()) // Data que o lote entrou no estoque
+
+  // Relacionamento com o Produto
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  
+  // Relacionamento com Movimentações
+  movements StockMovement[]
+}
+
+// 3. O Histórico de Movimentação (Entradas e Saídas)
+model StockMovement {
+  id        Int          @id @default(autoincrement())
+  type      MovementType // ENTRADA ou SAIDA
+  quantity  Int          // Quantidade que movimentou
+  date      DateTime     @default(now())
+  reason    String?      // Motivo (ex: "Compra NF-123", "Uso em procedimento")
+
+  // Relacionamento com o Produto (para facilitar filtros)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  // Relacionamento com o Lote (essencial para rastreabilidade)
+  stockLotId Int
+  stockLot   StockLot @relation(fields: [stockLotId], references: [id], onDelete: Restrict)
+
+  // Relacionamento com o Usuário (Quem fez a movimentação)
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+}
+
+// Enum para definir os tipos de movimentação
+enum MovementType {
+  ENTRY // Entrada
+  EXIT  // Saída
 }

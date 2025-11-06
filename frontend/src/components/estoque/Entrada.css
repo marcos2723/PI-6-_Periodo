@@ -1,0 +1,101 @@
+/* frontend/src/components/estoque/Entrada.css */
+
+.entrada-container {
+  padding: 24px;
+  background-color: #f4f7fa; 
+}
+
+.entrada-container h1 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.entrada-container p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+/* Card do Formulário */
+.form-card-entrada {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  max-width: 800px; /* Limita a largura para um formulário mais legível */
+  margin: 0 auto; /* Centraliza o card */
+}
+
+/* Estilo do Formulário */
+.entrada-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Duas colunas */
+  gap: 20px; 
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select {
+  padding: 10px;
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  width: 100%; /* Garante que o input ocupe o form-group */
+  box-sizing: border-box; /* Evita problemas de padding */
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus {
+  border-color: #830021; /* Destaque vermelho */
+  outline: none;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1; /* Ocupa a largura total (duas colunas) */
+}
+
+.form-group.btn-container {
+  text-align: right;
+  margin-top: 10px;
+}
+
+.btn-submit-entrada {
+  background-color: #830021; /* Vermelho iCardio */
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-submit-entrada:hover {
+  background-color: #64000f; /* Vermelho escuro */
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+  grid-column: 1 / -1; /* Ocupa a largura total */
+  text-align: center;
+}

@@ -1,0 +1,158 @@
+/* frontend/src/components/estoque/Produtos.css */
+
+.produtos-container {
+  padding: 24px;
+  background-color: #f4f7fa; /* Fundo cinza claro, similar ao seu print */
+}
+
+.produtos-container h1 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.produtos-container p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+/* Estilo dos Cards (Formulário e Lista) */
+.form-card,
+.list-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.form-card h3,
+.list-card h3 {
+  font-size: 18px;
+  color: #222;
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+/* Estilo do Formulário */
+.produtos-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Três colunas */
+  gap: 20px; /* Espaço entre os campos */
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+  padding: 10px;
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus {
+  border-color: #007bff; /* Cor de destaque */
+  outline: none;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1; /* Ocupa a largura total */
+  text-align: right;
+  margin-top: 10px;
+}
+
+.btn-submit {
+  background-color: #830021; /* Vermelho principal do seu login */
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-submit:hover {
+  background-color: #64000f;
+}
+
+/* Estilo da Tabela */
+.produtos-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.produtos-table th,
+.produtos-table td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.produtos-table th {
+  background-color: #f8f9fa;
+  color: #333;
+  font-weight: 600;
+}
+
+.produtos-table td {
+  color: #555;
+}
+
+.produtos-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* frontend/src/components/estoque/Produtos.css */
+
+/* ... (todo o seu CSS existente) ... */
+
+/* Estilo para o novo botão na tabela */
+.btn-inspect {
+  background-color: #5bc0de; /* Azul claro (info) */
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-inspect:hover {
+  background-color: #31b0d5;
+}
+
+/* Garante que a coluna de ações tenha o tamanho certo */
+.produtos-table th:last-child,
+.produtos-table td:last-child {
+  text-align: center;
+  width: 120px; /* Largura fixa para o botão */
+}

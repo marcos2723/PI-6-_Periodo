@@ -1,0 +1,161 @@
+/* frontend/src/components/estoque/InspectProductModal.css */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 4px;
+  color: #333;
+}
+.modal-subtitle {
+  font-size: 14px;
+  color: #777;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.modal-body {
+  margin-top: 20px;
+}
+
+/* Resumo do Estoque */
+.stock-summary {
+  background-color: #f4f7fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.stock-summary h3 {
+  margin: 0;
+  color: #555;
+  font-size: 16px;
+  font-weight: 600;
+}
+.stock-summary .total-stock {
+  font-size: 48px;
+  font-weight: 700;
+  color: #830021; /* Vermelho iCardio */
+  line-height: 1.2;
+}
+.stock-summary span {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Breakdown de Lotes */
+.lot-breakdown {
+  margin-bottom: 24px;
+}
+.lot-breakdown h4 {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+.lot-breakdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.lot-breakdown li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-radius: 4px;
+}
+.lot-breakdown li:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+.lot-breakdown li span {
+  font-size: 14px;
+  color: #444;
+}
+
+/* Formulário de Edição */
+.edit-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.edit-form h4 {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+  font-size: 16px;
+  color: #333;
+}
+.btn-save {
+  grid-column: 1 / -1;
+  background-color: #007bff; /* Azul */
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-save:hover { background-color: #0056b3; }
+
+/* Zona de Perigo */
+.delete-section {
+  border-top: 2px dashed #f0b4b4;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+.delete-section h4 {
+  color: #c9302c; /* Vermelho perigo */
+  margin: 0;
+}
+.delete-section p {
+  font-size: 13px;
+  color: #666;
+  margin: 4px 0 12px;
+}
+.btn-delete {
+  background-color: #d9534f; /* Vermelho perigo */
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+}
+.btn-delete:hover { background-color: #c9302c; }

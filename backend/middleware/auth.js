@@ -1,0 +1,20 @@
+// backend/middleware/auth.js
+require('dotenv').config(); // Garante que o JWT_SECRET está carregado
+const jwt = require('jsonwebtoken');
+
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (token == null) return res.status(401).json({ error: 'Token não fornecido.' });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, userPayload) => {
+    if (err) {
+      console.error("Erro na verificação do token:", err);
+      return res.status(403).json({ error: 'Token inválido ou expirado.' });
+    }
+    req.user = userPayload; 
+    next(); 
+  });
+};
+
+module.exports = { authenticateToken }; // Exporte a função

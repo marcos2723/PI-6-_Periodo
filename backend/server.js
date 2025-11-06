@@ -1,4 +1,5 @@
 // --- 1. IMPORTAÇÕES ---
+require('dotenv').config(); // IMPORTANTE
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
@@ -52,24 +53,11 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- 4. MIDDLEWARE DE AUTENTICAÇÃO JWT ---
-// Esta função verifica o token ANTES de deixar a requisição chegar nas rotas protegidas
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (token == null) return res.status(401).json({ error: 'Token não fornecido.' });
+// --- 4. ROTAS DE DADOS PROTEGIDAS (API) ---
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, userPayload) => {
-    if (err) {
-      console.error("Erro na verificação do token:", err);
-      return res.status(403).json({ error: 'Token inválido ou expirado.' }); // 403 Forbidden
-    }
-    req.user = userPayload; // Guarda os dados do usuário (id, role) na requisição
-    next(); // Passa para a próxima função (a rota em si)
-  });
-};
-
-// --- 5. ROTAS DE DADOS PROTEGIDAS (API) ---
+const { authenticateToken } = require('./middleware/auth.js'); // Importe o middleware
+const productRoutes = require('./routes/product.routes.js');
+const stockRoutes = require('./routes/stock.routes.js');
 
 // ROTA PROTEGIDA PARA BUSCAR DADOS DO PERFIL
 app.get('/api/profile', authenticateToken, async (req, res) => {
@@ -216,7 +204,10 @@ app.delete('/api/appointments/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// --- 6. INICIALIZAÇÃO DO SERVIDOR ---
+app.use('/api', productRoutes);
+app.use('/api', stockRoutes);
+
+// --- 5. INICIALIZAÇÃO DO SERVIDOR ---
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Servidor backend rodando na porta ${PORT} - ${new Date().toLocaleString('pt-BR')}`);
