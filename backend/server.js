@@ -268,6 +268,19 @@ app.get('/api/users', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar usuários.' });
   }
 });
+
+app.get('/api/doctors', authenticateToken, async (req, res) => {
+  try {
+    const doctors = await prisma.user.findMany({ 
+        where: { role: 'Médico' }, // Busca usuários com o papel "Médico"
+        select: { id: true, name: true } 
+    });
+    res.status(200).json(doctors);
+  } catch (error) {
+    console.error("Erro ao buscar médicos:", error);
+    res.status(500).json({ error: 'Erro ao buscar médicos.' });
+  }
+});
  
 app.get('/api/appointments', authenticateToken, async (req, res) => {
   try {
@@ -289,6 +302,18 @@ app.get('/api/appointments', authenticateToken, async (req, res) => {
 app.post('/api/appointments', authenticateToken, async (req, res) => {
   const { patientId, doctorId, date, status } = req.body;
   if (!patientId || !doctorId || !date) return res.status(400).json({ error: 'Paciente, médico e data são obrigatórios.' });
+
+  const appointmentDate = new Date(date);
+    const now = new Date();
+
+    // Damos 1 minuto de "tolerância" para cliques
+    // que acontecem exatamente na virada do minuto.
+    now.setMinutes(now.getMinutes() - 1); 
+
+    if (appointmentDate < now) {
+      return res.status(400).json({ error: 'Não é possível agendar consultas em datas ou horários passados.' });
+    }
+
   try {
     const newAppointment = await prisma.appointment.create({
       data: { patientId: parseInt(patientId), doctorId: parseInt(doctorId), date: new Date(date), status: status || 'Aguardando' },

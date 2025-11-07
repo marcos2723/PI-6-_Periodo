@@ -65,13 +65,28 @@ const Agenda = () => {
 
   // Abre o modal para um NOVO agendamento
   const handleSelectSlot = useCallback((slotInfo) => {
-    setSelectedEvent({
-      start: slotInfo.start,
-      end: slotInfo.end,
-      isNew: true, // Flag para o modal
-    });
-    setIsModalOpen(true);
-  }, []);
+    // --- ADICIONAMOS ESTA VERIFICAÇÃO ---
+    const now = new Date();
+    const slotStart = new Date(slotInfo.start);
+
+    // Se o horário de início do slot for ANTERIOR ao horário atual...
+    if (slotStart < now) {
+      // ...não faz nada. (Impede o clique)
+      // (Opcional: você pode adicionar uma mensagem de "toast" aqui
+      //  dizendo "Não é possível agendar no passado")
+      console.warn("Bloqueado: Tentativa de agendar em slot passado.");
+      return; // Para a execução
+    }
+    // --- FIM DA VERIFICAÇÃO ---
+
+    // Se a data for válida (futura), abre o modal:
+    setSelectedEvent({
+      start: slotInfo.start,
+      end: slotInfo.end,
+      isNew: true, // Flag para o modal
+    });
+    setIsModalOpen(true);
+  }, []);
 
   // Abre o modal para ver/editar um agendamento EXISTENTE
   const handleSelectEvent = useCallback((event) => {
