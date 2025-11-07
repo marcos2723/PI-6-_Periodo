@@ -1,54 +1,166 @@
-.calendarContainer {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.pageContent {
+  background: linear-gradient(135deg, #f8f9fb 0%, #f1f3f6 100%);
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: #343a40;
 }
 
-/* Estilos do Modal */
+.calendarContainer {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  max-width: 1200px;
+  transition: box-shadow 0.3s ease;
+}
+
+.calendarContainer:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Cabeçalho */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.header h2 {
+  font-size: 1.8rem;
+  color: #343a40;
+  font-weight: 700;
+}
+
+.newButton {
+  display: flex;
+  align-items: center;
+  background-color: #830021;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background 0.2s ease;
+}
+
+.newButton:hover {
+  background-color: #64000f;
+}
+
+/* Estilo dos eventos */
+.rbc-event {
+  background-color: #830021 !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 4px 6px !important;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #fff !important;
+}
+
+.rbc-event:hover {
+  background-color: #64000f !important;
+}
+
+/* Toolbar (Hoje / Próximo / Mês etc) */
+.rbc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rbc-toolbar button {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  pointer-events: auto !important; /* garante funcionamento */
+  cursor: pointer !important;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #e9ecef !important;
+  color: #212529 !important;
+}
+
+.rbc-toolbar-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #343a40;
+}
+
+/* Modal */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .modalContent {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 12px;
+  background-color: #fff;
+  padding: 2.5rem;
+  border-radius: 16px;
   width: 90%;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 520px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease;
 }
 
 .modalContent h2 {
   margin-top: 0;
-  margin-bottom: 2rem;
-  color: #343a40;
+  margin-bottom: 1.5rem;
+  color: #830021;
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .formGroup {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .formGroup label {
   display: block;
   font-weight: 600;
-  color: #6c757d;
+  color: #495057;
   margin-bottom: 0.5rem;
+  font-size: 0.95rem;
 }
 
-.formGroup p {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #343a40;
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus,
+.formGroup select:focus {
+  border-color: #830021;
+  outline: none;
 }
 
 .modalActions {
@@ -59,12 +171,13 @@
 }
 
 .modalActions button {
-  padding: 0.7rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  font-size: 0.95rem;
 }
 
 .cancelButton {
@@ -77,10 +190,23 @@
 }
 
 .saveButton {
-  background-color: #830021; /* Sua cor principal */
+  background-color: #830021;
   color: white;
+  box-shadow: 0 2px 6px rgba(131, 0, 33, 0.3);
 }
 
 .saveButton:hover {
   background-color: #64000f;
+}
+
+/* Animação */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

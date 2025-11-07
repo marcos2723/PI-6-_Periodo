@@ -5,17 +5,19 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import ptBR from 'date-fns/locale/pt-BR';
-
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import styles from './Agenda.module.css'; // Certifique-se que este CSS existe
-import AppointmentModal from './AppointmentModal.jsx'; // Certifique-se que este caminho está correto
+import styles from './Agenda.module.css';
+import AppointmentModal from './AppointmentModal.jsx';
 
-// Configuração de localização para o calendário
+// (opcional) Ícone para botão “Novo Agendamento”
+import AddIcon from '@mui/icons-material/Add';
+
+// Localização configurada corretamente
 const locales = { 'pt-BR': ptBR };
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek,
+  startOfWeek: (date) => startOfWeek(date, { weekStartsOn: 1, locale: ptBR }), // força segunda-feira
   getDay,
   locales,
 });
@@ -27,24 +29,19 @@ const Agenda = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  // --- FUNÇÃO CORRIGIDA ---
-  // Busca os agendamentos da API
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token'); // 1. Pega o token
+      const token = localStorage.getItem('token');
       if (!token) throw new Error('Usuário não autenticado.');
 
       const response = await fetch('http://localhost:3001/api/appointments', {
-        headers: {
-          'Authorization': `Bearer ${token}`, // 2. Adiciona o token
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) {
-        throw new Error('Falha ao buscar agendamentos.');
-      }
+      if (!response.ok) throw new Error('Falha ao buscar agendamentos.');
+
       const data = await response.json();
       const formattedData = data.map(event => ({
         ...event,
@@ -63,37 +60,25 @@ const Agenda = () => {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  // Abre o modal para um NOVO agendamento
   const handleSelectSlot = useCallback((slotInfo) => {
-    // --- ADICIONAMOS ESTA VERIFICAÇÃO ---
     const now = new Date();
     const slotStart = new Date(slotInfo.start);
 
-    // Se o horário de início do slot for ANTERIOR ao horário atual...
     if (slotStart < now) {
-      // ...não faz nada. (Impede o clique)
-      // (Opcional: você pode adicionar uma mensagem de "toast" aqui
-      //  dizendo "Não é possível agendar no passado")
-      console.warn("Bloqueado: Tentativa de agendar em slot passado.");
-      return; // Para a execução
+      alert("⚠️ Não é possível agendar no passado.");
+      return;
     }
-    // --- FIM DA VERIFICAÇÃO ---
 
-    // Se a data for válida (futura), abre o modal:
-    setSelectedEvent({
-      start: slotInfo.start,
-      end: slotInfo.end,
-      isNew: true, // Flag para o modal
-    });
-    setIsModalOpen(true);
-  }, []);
-
-  // Abre o modal para ver/editar um agendamento EXISTENTE
-  const handleSelectEvent = useCallback((event) => {
     setSelectedEvent({
-      ...event,
-      isNew: false, // Flag para o modal
+      start: slotInfo.start,
+      end: slotInfo.end,
+      isNew: true,
     });
+    setIsModalOpen(true);
+  }, []);
+
+  const handleSelectEvent = useCallback((event) => {
+    setSelectedEvent({ ...event, isNew: false });
     setIsModalOpen(true);
   }, []);
 
@@ -103,22 +88,46 @@ const Agenda = () => {
   };
 
   if (loading) {
-    return <div className="page-content"><h2>Carregando agenda...</h2></div>;
+    return <div className={styles.pageContent}><h2>Carregando agenda...</h2></div>;
   }
-  
+
   if (error) {
-    return <div className="page-content"><h2>Erro: {error}</h2></div>;
+    return <div className={styles.pageContent}><h2>Erro: {error}</h2></div>;
   }
 
   return (
-    <div className="page-content">
+    <div className={styles.pageContent}>
       <div className={styles.calendarContainer}>
+        
+        {/* Cabeçalho */}
+        <div className={styles.header}>
+          <h2>📅 Minha Agenda</h2>
+          <button
+            className={styles.newButton}
+            onClick={() => {
+              setSelectedEvent({ isNew: true, start: new Date(), end: new Date() });
+              setIsModalOpen(true);
+            }}
+          >
+            <AddIcon style={{ marginRight: '6px' }} />
+            Novo Agendamento
+          </button>
+        </div>
+
+        {/* Calendário */}
         <Calendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 'calc(100vh - 150px)' }} // Ajusta a altura
+          defaultView="week"
+          views={['month', 'week', 'day', 'agenda']}
+          popup
+          selectable
+          culture="pt-BR"
+          onSelectSlot={handleSelectSlot}
+          onSelectEvent={handleSelectEvent}
+          style={{ height: 'calc(100vh - 200px)' }}
           messages={{
             next: "Próximo",
             previous: "Anterior",
@@ -133,11 +142,6 @@ const Agenda = () => {
             noEventsInRange: "Não há eventos neste período.",
             showMore: total => `+ Ver mais (${total})`
           }}
-          culture='pt-BR'
-          defaultView='week'
-          selectable={true} // Permite clicar em horários vagos
-          onSelectSlot={handleSelectSlot}
-          onSelectEvent={handleSelectEvent}
         />
       </div>
 
@@ -145,7 +149,7 @@ const Agenda = () => {
         <AppointmentModal
           eventInfo={selectedEvent}
           onClose={closeModal}
-          onSaveSuccess={fetchAppointments} // Passa a função para atualizar a agenda
+          onSaveSuccess={fetchAppointments}
         />
       )}
     </div>
