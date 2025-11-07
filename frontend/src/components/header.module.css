@@ -59,7 +59,6 @@
 .userProfile {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   color: #495057;
   text-decoration: none; /* Remove sublinhado do link */
   padding: 0.5rem;
@@ -75,15 +74,20 @@
   display: flex;
   flex-direction: column;
   white-space: nowrap; /* Impede que o nome quebre a linha */
+  justify-content: center; /* <-- ADICIONE ESTA LINHA */
+  margin-left: 10px;
 }
 
 .userInfo strong {
   font-weight: 600;
+  font-size: 1.1rem; /* <-- Aumentado de tamanho */
+  line-height: 0.5;  /* <-- Diminuído para ficarem mais próximos */
+  /*margin-bottom: 2px; /* <-- Pequena margem para não grudarem totalmente */
 }
-
 .userInfo small {
-  font-size: 0.8rem;
+  font-size: 0.95rem; /* <-- Aumentado de tamanho */
   color: #6c757d;
+  line-height: 1.1;  /* <-- Diminuído para ficarem mais próximos */
 }
 
 /* Botão de Logout dedicado */
@@ -101,4 +105,16 @@
 .logoutButton:hover {
   background-color: #f8d7da; /* Fundo vermelho claro no hover */
   color: #842029; /* Cor vermelha escura */
+}
+
+.userIcon {
+  font-size: 40px;   /* Define o novo tamanho do ícone */
+  color: #4a5568;   /* Cor do ícone */
+  flex-shrink: 0;  /* Impede que o ícone diminua */
+}
+
+.userInfo strong,
+.userInfo small {
+  margin: 0;         /* Remove margem entre nome e cargo */
+  line-height: 1.25; /* Aproxima as linhas */
 }

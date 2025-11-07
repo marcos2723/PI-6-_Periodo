@@ -7,12 +7,119 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { format } = require('date-fns');
 
+const http = require('http');
+const { Server } = require('socket.io');
+
 // --- 2. CONFIGURAÇÃO INICIAL ---
 const prisma = new PrismaClient();
 const app = express();
 
+const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:3000", // URL do seu frontend React
+    methods: ["GET", "POST"]
+  }
+  });
+
 app.use(cors());
 app.use(express.json());
+
+// --- LÓGICA DO CHAT (SOCKET.IO) ---
+
+// Mapeamento { userId: socketId }
+// Guarda quem está online e qual o ID da conexão
+// Ex: { 5: "abc123xyz", 10: "def456qwe" }
+const userSocketMap = {};
+
+// Quando um novo cliente se conecta...
+io.on('connection', (socket) => {
+  // 'socket' é o cliente individual que acabou de se conectar
+
+  let userPayload; // Para guardar os dados do usuário (ID, nome)
+
+  try {
+    // 1. AUTENTICAÇÃO: Pega o token enviado pelo cliente
+    const token = socket.handshake.auth.token;
+    if (!token) throw new Error("Token não fornecido");
+    
+    // 2. VERIFICAÇÃO: Decodifica o token (igual ao auth.js)
+    userPayload = jwt.verify(token, process.env.JWT_SECRET);
+    // userPayload = { userId, name, role }
+    
+    // 3. ARMAZENAMENTO: Mapeia o ID do usuário ao ID do socket
+    userSocketMap[userPayload.userId] = socket.id;
+    console.log(`[Socket.io] Usuário conectado: ${userPayload.name} (Socket ID: ${socket.id})`);
+
+  } catch (err) {
+    // Se o token for inválido, desconecta o usuário.
+    console.error(`[Socket.io] Falha na autenticação: ${err.message}`);
+    socket.disconnect(true); // Força a desconexão
+    return; // Para a execução
+  }
+
+  // 4. OUVINTE: "get:message:history"
+  // Quando o cliente clica em um contato, ele pede o histórico
+  socket.on('get:message:history', async ({ otherUserId }) => {
+    const myId = userPayload.userId;
+    const messages = await prisma.chatMessage.findMany({
+      where: {
+        OR: [
+          { senderId: myId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: myId }
+        ]
+      },
+      orderBy: { createdAt: 'asc' },
+      include: { sender: { select: { name: true } } } // Inclui o nome do remetente
+    });
+    // Envia o histórico APENAS para o cliente que pediu
+    socket.emit('message:history', messages);
+  });
+
+  // 5. OUVINTE: "send:message"
+  // Quando o cliente envia uma nova mensagem
+  socket.on('send:message', async ({ receiverId, content }) => {
+    const senderId = userPayload.userId;
+    
+    try {
+      // Salva a mensagem no banco de dados
+      const message = await prisma.chatMessage.create({
+        data: {
+          senderId: senderId,
+          receiverId: parseInt(receiverId),
+          content: content
+        },
+        include: { sender: { select: { name: true } } }
+      });
+
+      // Procura o socket do destinatário no nosso mapa
+      const receiverSocketId = userSocketMap[receiverId];
+
+      // Envia a mensagem em tempo real, se o destinatário estiver online
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit('receive:message', message);
+      }
+      
+      // Envia a mensagem de "eco" de volta para o remetente
+      // (para confirmar que foi enviada e adicionar no chat dele)
+      socket.emit('receive:message', message);
+
+    } catch (err) {
+      console.error("Erro ao salvar/enviar mensagem:", err);
+    }
+  });
+
+  // 6. OUVINTE: "disconnect"
+  // Quando o cliente fecha o navegador
+  socket.on('disconnect', () => {
+    console.log(`[Socket.io] Usuário desconectado: ${userPayload.name}`);
+    // Remove o usuário do mapeamento
+    delete userSocketMap[userPayload.userId];
+  });
+});
+
+// --- FIM DA LÓGICA DO CHAT ---
 
 // --- 3. ROTAS DE AUTENTICAÇÃO ---
 app.post('/api/register', async (req, res) => {
@@ -136,12 +243,29 @@ app.get('/api/dashboard-data', authenticateToken, async (req, res) => {
 
 // --- Rotas da Agenda ---
 
-app.get('/api/doctors', authenticateToken, async (req, res) => {
+app.get('/api/users', authenticateToken, async (req, res) => {
+  const loggedInUserId = req.user.userId; // Pega o ID do usuário logado (do token)
+
   try {
-    const doctors = await prisma.user.findMany({ where: { role: 'Médico' }, select: { id: true, name: true } });
-    res.status(200).json(doctors);
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          not: loggedInUserId, // Exclui o próprio usuário da lista
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+    res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar médicos.' });
+    console.error("Erro ao buscar usuários para o chat:", error);
+    res.status(500).json({ error: 'Erro ao buscar usuários.' });
   }
 });
  
@@ -296,13 +420,8 @@ app.delete('/api/patients/:id', authenticateToken, async (req, res) => {
     }
 });
 
-
-// Suas rotas modulares de Estoque (exemplo)
-app.use('/api', authenticateToken, productRoutes);
-app.use('/api', authenticateToken, stockRoutes);
-
 // --- 5. INICIALIZAÇÃO DO SERVIDOR ---
 const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`Servidor backend rodando na porta ${PORT} - ${new Date().toLocaleString('pt-BR')}`);
+httpServer.listen(PORT, () => {
+  console.log(`Servidor HTTP e Socket.io rodando na porta ${PORT} - ${new Date().toLocaleString('pt-BR')}`);
 });

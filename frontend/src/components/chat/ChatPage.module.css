@@ -1,0 +1,239 @@
+.chatContainer {
+  display: flex;
+  height: calc(100vh - 70px); /* Altura total (menos o header) */
+  background: #f4f7fa;
+  overflow: hidden; /* Impede o container principal de rolar */
+}
+
+/* --- Coluna da Esquerda (Contatos) --- */
+.contactListPane {
+  width: 350px;
+  border-right: 1px solid #e0e0e0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.contactListHeader {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.contactListHeader h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.searchBar {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #dcdcdc;
+  border-radius: 20px;
+  font-size: 14px;
+  box-sizing: border-box; 
+}
+
+.contactList {
+  flex: 1; 
+  overflow-y: auto; /* Adiciona scroll se a lista for grande */
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.contactItem:hover {
+  background-color: #f9f9f9;
+}
+
+/* NOVO: Estilo do contato selecionado */
+.activeContact {
+  background-color: #f0f4f8; 
+  border-right: 3px solid #830021;
+}
+
+.contactAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #830021; /* Vermelho iCardio */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 15px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Impede nomes longos de quebrarem o layout */
+}
+
+.contactName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.contactRole {
+  font-size: 13px;
+  color: #777;
+}
+
+.noResults, .error {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+}
+
+.error { color: #d9534f; }
+
+
+/* --- Coluna da Direita (Janela do Chat) --- */
+.chatWindowPane {
+  flex: 1;
+  display: flex;
+  /* Removemos o 'align-items' e 'justify-content' */
+  /* para que o chat preencha a tela */
+}
+
+/* Placeholder (quando nenhum chat está aberto) */
+.chatWindowPlaceholder {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #aaa;
+}
+
+.chatWindowPlaceholder p {
+  font-size: 16px;
+  background-color: #f0f0f0;
+  padding: 15px 25px;
+  border-radius: 20px;
+}
+
+/* O Chat (quando um contato é selecionado) */
+.chatWindow {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%; /* Ocupa todo o espaço do 'chatWindowPane' */
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  /* Faz o avatar e nome do header usarem os mesmos estilos da lista */
+}
+
+/* Lista de Mensagens */
+.messageList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.messageItem {
+  display: flex;
+  margin-bottom: 10px;
+  max-width: 70%;
+}
+
+.messageContent {
+  padding: 10px 15px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.messageTimestamp {
+  font-size: 11px;
+  color: #888;
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Mensagens de OUTRA pessoa */
+.theirMessage {
+  align-self: flex-start;
+}
+.theirMessage .messageContent {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-top-left-radius: 4px;
+}
+
+/* NOSSAS mensagens */
+.myMessage {
+  align-self: flex-end;
+}
+.myMessage .messageContent {
+  background-color: #830021; /* Vermelho iCardio */
+  color: white;
+  border-top-right-radius: 4px;
+}
+.myMessage .messageTimestamp {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+
+/* Formulário de Envio */
+.messageInputForm {
+  display: flex;
+  padding: 15px 20px;
+  background-color: #ffffff;
+  border-top: 1px solid #e0e0e0;
+}
+
+.messageInput {
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid #dcdcdc;
+  border-radius: 20px;
+  font-size: 14px;
+  margin-right: 10px;
+}
+.messageInput:focus {
+  outline: none;
+  border-color: #830021;
+}
+
+.sendButton {
+  background-color: #830021;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+}
+.sendButton:hover {
+  background-color: #64000f;
+}

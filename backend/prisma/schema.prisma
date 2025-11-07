@@ -20,6 +20,9 @@ model User {
 
   // ADICIONE ESTA LINHA ABAIXO
   stockMovements       StockMovement[]
+
+  sentMessages     ChatMessage[] @relation("Sender")
+  receivedMessages ChatMessage[] @relation("Receiver")
 }
 
 model Patient {
@@ -106,4 +109,21 @@ model StockMovement {
 enum MovementType {
   ENTRY // Entrada
   EXIT  // Saída
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  content   String   // O texto da mensagem
+  createdAt DateTime @default(now())
+
+  // Quem enviou
+  senderId  Int
+  sender    User     @relation("Sender", fields: [senderId], references: [id])
+
+  // Quem recebeu
+  receiverId Int
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
 }
