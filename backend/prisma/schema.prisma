@@ -1,3 +1,5 @@
+// backend/prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,30 +10,37 @@ datasource db {
 }
 
 model User {
-  id                   Int           @id @default(autoincrement())
-  email                String        @unique
-  name                 String
-  password             String
-  phone                String?
-  role                 String
-  crm                  String?
-  createdAt            DateTime      @default(now())
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  phone     String?
+  role      String
+  crm       String?
+  createdAt DateTime @default(now())
+
   appointmentsAsDoctor Appointment[]
-
-  // ADICIONE ESTA LINHA ABAIXO
   stockMovements       StockMovement[]
+  sentMessages         ChatMessage[]   @relation("Sender")
+  receivedMessages     ChatMessage[]   @relation("Receiver")
 
-  sentMessages     ChatMessage[] @relation("Sender")
-  receivedMessages ChatMessage[] @relation("Receiver")
+  // --- LINHAS NOVAS PARA O FINANCEIRO ---
+  budgets      Budget[]      // Orçamentos que este usuário criou
+  transactions Transaction[] // Lançamentos que este usuário registrou
 }
 
 model Patient {
-  id           Int           @id @default(autoincrement())
-  name         String
-  email        String?       @unique
-  phone        String?
-  createdAt    DateTime      @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?  @unique
+  phone     String?
+  createdAt DateTime @default(now())
+
   appointments Appointment[]
+
+  // --- LINHAS NOVAS PARA O FINANCEIRO ---
+  budgets      Budget[]      // Orçamentos deste paciente
+  transactions Transaction[] // Transações deste paciente
 }
 
 model Appointment {
@@ -43,87 +52,136 @@ model Appointment {
   doctor    User     @relation(fields: [doctorId], references: [id])
   patient   Patient  @relation(fields: [patientId], references: [id])
 }
-// ----------------------------------------------
-// ADICIONE OS NOVOS MODELS ABAIXO
-// ----------------------------------------------
 
-// 1. O Catálogo de Produtos (O que é o item)
+// --- Modelos de Estoque (Existentes) ---
 model Product {
-  id              Int     @id @default(autoincrement())
-  name            String  // Nome do produto (ex: "Seringa Descartável 5ml")
-  description     String? // Descrição mais longa
-  sku             String  @unique // Código interno/SKU único
-  category        String? // Categoria (ex: "Medicamento", "Material de Consumo")
-  unitMeasure     String  // Unidade de medida principal (ex: "UN", "CX", "ML")
-  minStockLevel   Int     @default(0) // Nível de estoque mínimo para alerta
-  location        String? // Localização física (ex: "Prateleira A-01")
-  
-  // Rastreabilidade (configuração do produto)
-  controlsLot     Boolean @default(true) // Este produto exige controle de lote?
-  controlsExpiry  Boolean @default(true) // Este produto exige controle de validade?
-  
-  // Relacionamentos
-  lots      StockLot[]
-  movements StockMovement[]
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String?
+  sku           String   @unique
+  category      String?
+  unitMeasure   String
+  minStockLevel Int      @default(0)
+  location      String?
+  controlsLot   Boolean  @default(true)
+  controlsExpiry Boolean  @default(true)
+  lots          StockLot[]
+  movements     StockMovement[]
 }
 
-// 2. O Lote de Estoque (O item físico com validade e quantidade)
 model StockLot {
-  id              Int       @id @default(autoincrement())
-  lotNumber       String    // Número do Lote fornecido pelo fabricante
-  expiryDate      DateTime? // Data de Validade
-  initialQuantity Int       // Quantidade que entrou neste lote
-  currentQuantity Int       // Quantidade atual (será debitada nas saídas)
-  entryDate       DateTime  @default(now()) // Data que o lote entrou no estoque
-
-  // Relacionamento com o Produto
-  productId Int
-  product   Product @relation(fields: [productId], references: [id])
-  
-  // Relacionamento com Movimentações
-  movements StockMovement[]
+  id              Int             @id @default(autoincrement())
+  lotNumber       String
+  expiryDate      DateTime?
+  initialQuantity Int
+  currentQuantity Int
+  entryDate       DateTime        @default(now())
+  productId       Int
+  product         Product         @relation(fields: [productId], references: [id])
+  movements       StockMovement[]
 }
 
-// 3. O Histórico de Movimentação (Entradas e Saídas)
 model StockMovement {
-  id        Int          @id @default(autoincrement())
-  type      MovementType // ENTRADA ou SAIDA
-  quantity  Int          // Quantidade que movimentou
-  date      DateTime     @default(now())
-  reason    String?      // Motivo (ex: "Compra NF-123", "Uso em procedimento")
-
-  // Relacionamento com o Produto (para facilitar filtros)
-  productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-
-  // Relacionamento com o Lote (essencial para rastreabilidade)
+  id         Int          @id @default(autoincrement())
+  type       MovementType
+  quantity   Int
+  date       DateTime     @default(now())
+  reason     String?
+  productId  Int
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
   stockLotId Int
-  stockLot   StockLot @relation(fields: [stockLotId], references: [id], onDelete: Restrict)
-
-  // Relacionamento com o Usuário (Quem fez a movimentação)
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  stockLot   StockLot     @relation(fields: [stockLotId], references: [id], onDelete: Restrict)
+  userId     Int
+  user       User         @relation(fields: [userId], references: [id])
 }
 
-// Enum para definir os tipos de movimentação
 enum MovementType {
-  ENTRY // Entrada
-  EXIT  // Saída
+  ENTRY
+  EXIT
 }
 
 model ChatMessage {
   id        Int      @id @default(autoincrement())
-  content   String   // O texto da mensagem
+  content   String
   createdAt DateTime @default(now())
-
-  // Quem enviou
   senderId  Int
   sender    User     @relation("Sender", fields: [senderId], references: [id])
-
-  // Quem recebeu
   receiverId Int
-  receiver   User     @relation("Receiver", fields: [receiverId], references: [id])
-
+  receiver  User     @relation("Receiver", fields: [receiverId], references: [id])
   @@index([senderId])
   @@index([receiverId])
+}
+
+// ----------------------------------------------
+// --- NOVOS MODELS PARA O MÓDULO FINANCEIRO ---
+// ----------------------------------------------
+
+// Catálogo de Serviços/Procedimentos
+model Service {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique // Ex: "Consulta", "Ecocardiograma"
+  price Float   // Preço padrão
+  
+  // Relacionamentos
+  transactions Transaction[]
+  budgets      BudgetLine[]
+}
+
+// Convênios
+model Convenio {
+  id   Int    @id @default(autoincrement())
+  name String @unique // Ex: "Unimed", "Bradesco Saúde"
+  
+  // Relacionamentos
+  transactions Transaction[]
+}
+
+// Orçamentos
+model Budget {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id]) // Quem criou
+  date      DateTime @default(now())
+  total     Float
+  status    String   // Ex: "Pendente", "Aprovado"
+  
+  lines BudgetLine[] // Linhas do orçamento
+}
+
+// Linhas de um Orçamento
+model BudgetLine {
+  id        Int     @id @default(autoincrement())
+  budgetId  Int
+  budget    Budget  @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  serviceId Int
+  service   Service @relation(fields: [serviceId], references: [id])
+  quantity  Int
+  unitPrice Float
+}
+
+// O "Livro Caixa" (Receitas e Despesas)
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  date          DateTime @default(now())
+  description   String
+  amount        Float    // Valor (positivo para Receita, negativo para Despesa)
+  type          String   // "RECEITA" ou "DESPESA"
+  paymentMethod String   // "Pix", "Cartão", "Dinheiro", "Convênio"
+  status        String   // "Pago" ou "Pendente" (para Contas a Pagar/Receber)
+
+  // Relacionamentos
+  patientId Int?
+  patient   Patient? @relation(fields: [patientId], references: [id])
+  
+  convenioId Int?
+  convenio   Convenio? @relation(fields: [convenioId], references: [id])
+
+  serviceId Int?
+  service   Service? @relation(fields: [serviceId], references: [id])
+
+  // Quem registrou a transação
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
