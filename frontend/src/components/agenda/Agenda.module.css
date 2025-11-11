@@ -1,0 +1,175 @@
+/* frontend/src/components/Agenda.module.css */
+
+/* --- Cabeçalho e Filtros --- */
+.agendaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filterContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filterContainer label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.doctorSelect {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.ctaButton {
+  background-color: #830021;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 2px 4px rgba(131, 0, 33, 0.2);
+}
+
+.ctaButton:hover {
+  background-color: #64000f;
+  transform: translateY(-2px);
+}
+
+/* --- Container do Calendário --- */
+.calendarContainer {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* ---
+   CUSTOMIZAÇÃO DO TEMA DO REACT-BIG-CALENDAR (Design Moderno)
+--- */
+
+/* 1. Estilos dos Slots (Horários) */
+.pastSlot {
+  background-color: #f8f9fa !important;
+  cursor: not-allowed;
+}
+.pastSlot:hover {
+  background-color: #f1f3f5 !important;
+}
+
+.bookedSlot {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #fff,
+    #fff 10px,
+    #fdf0f2 10px,
+    #fdf0f2 20px
+  ) !important;
+  cursor: not-allowed;
+  color: #f1f3f5 !important;
+}
+
+/* 2. Estilos dos Eventos (Agendamentos) */
+.customEvent {
+  background-color: #830021 !important;
+  border: 1px solid #64000f !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-weight: 500 !important;
+  color: #fff !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.customEvent:hover,
+.customEvent:focus {
+  background-color: #64000f !important;
+}
+.customEventContent strong {
+  font-weight: 600;
+  display: block;
+}
+.customEventContent .eventDoctor {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+/* 3. Estilos da Toolbar (Botões "Hoje", "Mês", "Semana") */
+.rbc-toolbar {
+  margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.rbc-toolbar button {
+  background-color: #fff !important;
+  color: #495057 !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  cursor: pointer !important;
+}
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(131, 0, 33, 0.1) !important;
+}
+
+.rbc-toolbar button.rbc-active,
+.rbc-toolbar button.rbc-active:hover {
+  background-color: #830021 !important;
+  color: white !important;
+  border-color: #64000f !important;
+  box-shadow: 0 2px 4px rgba(131, 0, 33, 0.2) !important;
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #343a40;
+}
+
+/* 4. Estilos da Tabela */
+.rbc-day-slot .rbc-today,
+.rbc-month-view .rbc-today {
+  background-color: #fef8f9 !important;
+}
+.rbc-day-header {
+  padding: 0.75rem 0;
+  font-weight: 600;
+  color: #6c757d;
+  border-bottom: 1px solid #e9ecef;
+}
+.rbc-time-header {
+  border-bottom: 1px solid #e9ecef;
+}
+.rbc-time-gutter, .rbc-time-header-gutter {
+  border-right: 1px solid #e9ecef;
+}
+.rbc-day-slot .rbc-time-slot {
+  border-bottom: none;
+}
+.rbc-time-slot {
+  border-top: 1px solid #f1f3f5;
+}
+.rbc-timeslot-group {
+  border-bottom: 1px solid #e9ecef;
+}
+.rbc-month-row {
+  border: 1px solid #e9ecef;
+}

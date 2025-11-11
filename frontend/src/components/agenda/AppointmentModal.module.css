@@ -1,0 +1,133 @@
+/* frontend/src/components/AppointmentModal.module.css */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  padding: 1rem;
+}
+
+.modalContent {
+  background-color: #fff;
+  padding: 2rem 2.5rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease;
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 2rem;
+  color: #830021;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.formGroup label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  font-size: 1rem;
+  background-color: #fdfdfd;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus,
+.formGroup select:focus {
+  border-color: #830021;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(131, 0, 33, 0.1);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-between; /* Espalha os botões */
+  gap: 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid #e9ecef;
+  padding-top: 1.5rem;
+}
+
+.modalActions button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+/* --- Estilos dos Botões --- */
+
+.cancelButton {
+  background-color: #f1f3f5;
+  color: #495057;
+}
+.cancelButton:hover {
+  background-color: #e9ecef;
+}
+
+.saveButton {
+  background-color: #830021;
+  color: white;
+  box-shadow: 0 2px 6px rgba(131, 0, 33, 0.3);
+}
+.saveButton:hover {
+  background-color: #64000f;
+}
+
+/* Botão de Deletar (Fica à esquerda) */
+.deleteButton {
+  background-color: transparent;
+  color: #dc3545;
+  font-weight: 600;
+  padding-left: 0;
+}
+.deleteButton:hover {
+  background-color: #f8d7da;
+}
+
+/* Mensagem de Erro */
+.error {
+    color: #dc3545;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Animação */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

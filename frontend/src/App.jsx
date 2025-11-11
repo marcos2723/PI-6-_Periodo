@@ -8,7 +8,7 @@ import Sidebar from './components/Sidebar.jsx';
 import Header from './components/header.js';
 import Profile from './components/profile.jsx';
 import Dashboard from './components/Dashboard.jsx';
-import Agenda from './components/Agenda.jsx';
+import Agenda from './components/agenda/Agenda.jsx';
 import Pacientes from './components/pacientes/Pacientes.jsx';
 import VisaoGeral from './components/Financeiro/VisaoGeral.js';
 import ContasPagar from './components/Financeiro/ContasPagar.js';
