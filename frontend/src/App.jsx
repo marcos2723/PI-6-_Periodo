@@ -10,12 +10,10 @@ import Profile from './components/profile.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import Agenda from './components/agenda/Agenda.jsx';
 import Pacientes from './components/pacientes/Pacientes.jsx';
-import VisaoGeral from './components/Financeiro/VisaoGeral.js';
-import ContasPagar from './components/Financeiro/ContasPagar.js';
-import Movimentacao from './components/Financeiro/Movimentacao.js';
-import ContasReceber from './components/Financeiro/ContasReceber.js';
-import Orcamentos from './components/Financeiro/Orcamentos.js';
-import Recibos from './components/Financeiro/Recibos.js';
+import VisaoGeral from './components/Financeiro/VisaoGeral.jsx';
+import ContasPagar from './components/Financeiro/Lancamentos.jsx';
+import Movimentacao from './components/Financeiro/ConfiguracoesFinanceiras.jsx';
+import Orcamentos from './components/Financeiro/Orcamentos.jsx';
 import Produtos from './components/estoque/Produtos.js';
 import Entrada from './components/estoque/Entrada.js';
 import Saida from './components/estoque/Saida.js';
@@ -23,6 +21,7 @@ import ChatPage from './components/chat/ChatPage.jsx'; // --- NOVO: Importa a p�
 
 // Estilos globais
 import './App.css'; 
+import ConfiguracoesFinanceiras from './components/Financeiro/ConfiguracoesFinanceiras.jsx';
 
 // --- 2. LAYOUT PRINCIPAL DO SISTEMA (PRIVADO) ---
 const MainLayout = ({ onLogout }) => (
@@ -37,12 +36,10 @@ const MainLayout = ({ onLogout }) => (
         <Route path="/perfil" element={<Profile />} />
         
         {/* Rotas do Financeiro */}
-        <Route path="/financeiro/visao-geral" element={<VisaoGeral />} />
-        <Route path="/financeiro/contas-a-pagar" element={<ContasPagar />} />
-        <Route path="/financeiro/movimentacao" element={<Movimentacao />} />
-        <Route path="/financeiro/contas-a-receber" element={<ContasReceber />} />
-        <Route path="/financeiro/orcamentos" element={<Orcamentos />} />
-        <Route path="/financeiro/recibos" element={<Recibos />} />
+        <Route path="/financeiro/VisaoGeral" element={<VisaoGeral />} />
+        <Route path="/financeiro/ConfiguracoesFinanceiras" element={<ConfiguracoesFinanceiras />} />
+        <Route path="/financeiro/Orcamentos" element={<Orcamentos />} />
+        <Route path="/financeiro/Lancamentos" element={<ContasPagar />} />
 
         {/* Rotas do Estoque */}
         <Route path="/estoque/produtos" element={<Produtos />} />

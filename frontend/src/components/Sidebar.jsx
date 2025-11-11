@@ -42,13 +42,10 @@ const Sidebar = () => {
             <FaCoins /> <span>Financeiro</span>
           </div>
           <ul className={styles.submenu}>
-            <li><NavLink to="/financeiro/visao-geral" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Visão Geral</NavLink></li>
-            <li><NavLink to="/financeiro/movimentacao" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Movimentação</NavLink></li>
-            <li><NavLink to="/financeiro/contas-a-pagar" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Contas a Pagar</NavLink></li>
-            <li><NavLink to="/financeiro/contas-a-receber" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Contas a Receber</NavLink></li>
-            <li><NavLink to="/financeiro/orcamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Orçamentos</NavLink></li>
-            <li><NavLink to="/financeiro/recebidos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Recibos</NavLink></li>
-            <li><NavLink to="/financeiro/parcelamento" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Efetuar parcelamento</NavLink></li>
+            <li><NavLink to="/financeiro/VisaoGeral" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Visão Geral</NavLink></li>
+            <li><NavLink to="/financeiro/ConfiguracoesFinanceiras" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Configurações Financeiras</NavLink></li>
+            <li><NavLink to="/financeiro/Lancamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Lançamentos</NavLink></li>
+            <li><NavLink to="/financeiro/Orcamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Orçamentos</NavLink></li>
           </ul>
         </li>
         

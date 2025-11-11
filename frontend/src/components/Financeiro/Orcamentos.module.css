@@ -1,0 +1,52 @@
+/* (Estilos muito similares aos de Pacientes.module.css) */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.header h2 { font-size: 1.8rem; font-weight: 600; }
+.addButton {
+  background-color: #830021;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.listContainer {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+.listTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.listTable th, .listTable td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+.listTable th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+}
+.Aprovado { background-color: #d1e7dd; color: #0f5132; padding: 4px 8px; border-radius: 6px; }
+.Pendente { background-color: #fff3cd; color: #664d03; padding: 4px 8px; border-radius: 6px; }
+
+.actionButton {
+  background-color: #f1f3f5;
+  color: #495057;
+  border: 1px solid #ced4da;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}

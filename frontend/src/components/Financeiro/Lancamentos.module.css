@@ -1,0 +1,90 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.header h2 { font-size: 1.8rem; font-weight: 600; }
+.addButton {
+  background-color: #830021;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.addButton:hover { background-color: #64000f; }
+
+.filterBar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+.filterBar .formGroup { margin-bottom: 0; }
+.filterBar label { display: flex; align-items: center; gap: 0.5rem; }
+
+.listContainer {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+.listTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.listTable th, .listTable td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+.listTable th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+}
+.noItems {
+  text-align: center;
+  color: #6c757d;
+  padding: 3rem;
+}
+
+.RECEITA { color: #198754; font-weight: 500; }
+.DESPESA { color: #dc3545; font-weight: 500; }
+.Pago { background-color: #d1e7dd; color: #0f5132; padding: 4px 8px; border-radius: 6px; }
+.Pendente { background-color: #fff3cd; color: #664d03; padding: 4px 8px; border-radius: 6px; }
+
+/* Estilos do Modal (copiados de PatientModal) */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+.modalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.modalContent h2 { margin-top: 0; margin-bottom: 2rem; }
+.formGroup { margin-bottom: 1rem; }
+.formGroup label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+.formGroup input, .formGroup select { width: 100%; padding: 0.75rem; border: 1px solid #ced4da; border-radius: 8px; }
+.modalActions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+.cancelButton { background-color: #f1f3f5; color: #495057; border: 1px solid #ced4da; padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.saveButton { background-color: #830021; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.errorText { color: #dc3545; }

@@ -1,0 +1,62 @@
+.configSection {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-top: 2rem;
+}
+.configSection h3 {
+  margin-top: 0;
+  font-weight: 600;
+}
+.configSection p {
+  color: #6c757d;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.serviceForm {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.serviceForm input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+}
+.saveButton {
+  background-color: #830021;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.saveButton:hover { background-color: #64000f; }
+
+/* (Estilos de tabela similares aos de Pacientes.module.css) */
+.listContainer {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.listTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.listTable th, .listTable td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+.listTable th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+}
