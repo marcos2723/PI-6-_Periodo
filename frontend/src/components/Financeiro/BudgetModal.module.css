@@ -1,0 +1,58 @@
+/* (Estilos muito similares aos de PatientModal) */
+.modalOverlay {
+  position: fixed; inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; padding: 1rem;
+}
+.modalContent {
+  background-color: white; padding: 2rem; border-radius: 12px;
+  width: 100%; max-width: 700px; /* Modal maior */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-height: 90vh; overflow-y: auto; /* Permite rolagem */
+}
+.modalContent h2 { margin-top: 0; margin-bottom: 2rem; color: #830021; }
+.formGroup { margin-bottom: 1rem; }
+.formGroup label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+.formGroup input, .formGroup select { 
+  width: 100%; padding: 0.75rem; 
+  border: 1px solid #ced4da; border-radius: 8px;
+}
+.modalActions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+.cancelButton { background-color: #f1f3f5; color: #495057; border: 1px solid #ced4da; padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.saveButton { background-color: #830021; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.errorText { color: #dc3545; font-weight: 500; text-align: center; }
+.divider { border: 0; border-top: 1px solid #e9ecef; margin: 1.5rem 0; }
+
+.lineItem {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.removeLineButton {
+  background: none; border: none;
+  color: #dc3545; cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.75rem 0.5rem;
+}
+.addLineButton {
+  background-color: #e9ecef;
+  color: #495057;
+  border: 1px dashed #ced4da;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.totalSection {
+  margin-top: 1.5rem;
+  text-align: right;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.totalSection span {
+  color: #830021;
+  margin-left: 1rem;
+}

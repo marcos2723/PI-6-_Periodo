@@ -1,10 +1,14 @@
+/* --- Cabeçalho e Botão --- */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
-.header h2 { font-size: 1.8rem; font-weight: 600; }
+.header h2 { 
+  font-size: 1.8rem; 
+  font-weight: 600; 
+}
 .addButton {
   background-color: #830021;
   color: white;
@@ -17,19 +21,40 @@
   align-items: center;
   gap: 0.5rem;
 }
-.addButton:hover { background-color: #64000f; }
+.addButton:hover { 
+  background-color: #64000f; 
+}
 
+/* --- Barra de Filtros --- */
 .filterBar {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem; /* Aumenta o espaço entre os filtros */
   padding: 1rem;
   background-color: #f8f9fa;
   border-radius: 8px;
   margin-bottom: 2rem;
+  align-items: center; /* Alinha os grupos de filtro verticalmente */
 }
-.filterBar .formGroup { margin-bottom: 0; }
-.filterBar label { display: flex; align-items: center; gap: 0.5rem; }
 
+/* --- CORREÇÃO DO FILTRO "TORTO" --- */
+.filterBar .formGroup { 
+  margin-bottom: 0; 
+  display: flex; /* Faz a label e o select ficarem na mesma linha */
+  align-items: center; /* Alinha eles verticalmente */
+  gap: 0.5rem; /* Espaço entre a label e o select */
+}
+
+.filterBar label { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem;
+  margin-bottom: 0; /* Remove a margem que existia no .formGroup label */
+  font-weight: 600; /* Adiciona peso à label */
+  color: #495057;
+}
+/* --- FIM DA CORREÇÃO --- */
+
+/* --- Tabela de Lançamentos --- */
 .listContainer {
   background-color: #ffffff;
   border-radius: 12px;
@@ -56,12 +81,29 @@
   padding: 3rem;
 }
 
-.RECEITA { color: #198754; font-weight: 500; }
-.DESPESA { color: #dc3545; font-weight: 500; }
-.Pago { background-color: #d1e7dd; color: #0f5132; padding: 4px 8px; border-radius: 6px; }
-.Pendente { background-color: #fff3cd; color: #664d03; padding: 4px 8px; border-radius: 6px; }
+/* --- Estilos de Status e Tipo --- */
+.RECEITA { 
+  color: #198754; 
+  font-weight: 500; 
+}
+.DESPESA { 
+  color: #dc3545; 
+  font-weight: 500; 
+}
+.Pago { 
+  background-color: #d1e7dd; 
+  color: #0f5132; 
+  padding: 4px 8px; 
+  border-radius: 6px; 
+}
+.Pendente { 
+  background-color: #fff3cd; 
+  color: #664d03; 
+  padding: 4px 8px; 
+  border-radius: 6px; 
+}
 
-/* Estilos do Modal (copiados de PatientModal) */
+/* --- Estilos do Modal (Popup) --- */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -80,11 +122,49 @@
   max-width: 500px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
-.modalContent h2 { margin-top: 0; margin-bottom: 2rem; }
-.formGroup { margin-bottom: 1rem; }
-.formGroup label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
-.formGroup input, .formGroup select { width: 100%; padding: 0.75rem; border: 1px solid #ced4da; border-radius: 8px; }
-.modalActions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
-.cancelButton { background-color: #f1f3f5; color: #495057; border: 1px solid #ced4da; padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.saveButton { background-color: #830021; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.errorText { color: #dc3545; }
+.modalContent h2 { 
+  margin-top: 0; 
+  margin-bottom: 2rem; 
+}
+.formGroup { 
+  margin-bottom: 1rem; 
+}
+.formGroup label { 
+  display: block; 
+  font-weight: 600; 
+  margin-bottom: 0.5rem; 
+}
+.formGroup input, 
+.formGroup select { 
+  width: 100%; 
+  padding: 0.75rem; 
+  border: 1px solid #ced4da; 
+  border-radius: 8px; 
+}
+.modalActions { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 1rem; 
+  margin-top: 2rem; 
+}
+.cancelButton { 
+  background-color: #f1f3f5; 
+  color: #495057; 
+  border: 1px solid #ced4da; 
+  padding: 0.7rem 1.5rem; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  cursor: pointer; 
+}
+.saveButton { 
+  background-color: #830021; 
+  color: white; 
+  border: none; 
+  padding: 0.7rem 1.5rem; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  cursor: pointer; 
+}
+.errorText { 
+  color: #dc3545; 
+}
