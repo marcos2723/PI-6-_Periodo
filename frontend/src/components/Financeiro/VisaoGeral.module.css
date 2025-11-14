@@ -27,6 +27,7 @@
 .kpiInfo {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .kpiTitle {
@@ -36,20 +37,11 @@
 }
 
 .kpiValue {
-  font-size: 2.5rem; /* Tamanho da fonte padrão, ajuste se precisar */
   font-weight: 600;
-  white-space: nowrap; /* Impede que o texto quebre em várias linhas */
-  overflow: hidden; /* Esconde qualquer parte do texto que exceda o container */
-  text-overflow: ellipsis; /* Adiciona "..." se o texto for muito longo (opcional, mas bom) */
-  /* Ajuste de tamanho da fonte responsivo: */
-  min-width: 0; /* Permite que o flex item diminua */
-  flex-grow: 1; /* Permite que o flex item cresça */
-  display: flex; /* Transforma em flex container para alinhar o texto */
-  align-items: center; /* Alinha verticalmente */
-  justify-content: center; /* Alinha horizontalmente */
-  /* Propriedade para ajustar a fonte: */
-  font-size: clamp(1.5rem, 4vw + 0.5rem, 2.5rem); /* Ajusta a fonte entre 1.5rem e 2.5rem, com base na largura da viewport */
-  /* Você pode experimentar com "text-rendering: optimizeLegibility;" se a fonte parecer ruim, mas geralmente não é necessário */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(1.25rem, 1.5vw + 1rem, 2.25rem);
 }
 
 .chartContainer {
@@ -59,6 +51,12 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
 .errorText {
   color: #dc3545;
+}
+.errorText {
+  color: #dc3545;
+  font-weight: 500;
+  text-align: center;
 }
