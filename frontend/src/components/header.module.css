@@ -1,5 +1,4 @@
-/* frontend/src/components/Header.module.css */
-
+/* HEADER CONTAINER */
 .header {
   display: flex;
   justify-content: space-between;
@@ -11,17 +10,16 @@
   height: 70px;
 }
 
-/* Estilo base para as 3 seções (esquerda, centro, direita) */
+/* 3 SEÇÕES */
 .headerSection {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  flex: 1; /* Cada seção tenta ocupar 1/3 do espaço */
+  flex: 1;
 }
 
-/* Alinhamentos específicos para cada seção */
 .leftSection {
-  justify-content: flex-start; /* Alinha o perfil à esquerda */
+  justify-content: flex-start;
 }
 
 .centerSection {
@@ -32,89 +30,87 @@
 }
 
 .rightSection {
-  justify-content: flex-end; /* Alinha as ações à direita */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Data e Hora em Linha */
+/* DATA E HORA */
 .dateTime {
   color: #6c757d;
   font-size: 0.9rem;
   font-weight: 500;
-  white-space: nowrap; /* Impede que a data quebre a linha */
+  white-space: nowrap;
 }
 
-/* Estilo para os ícones de ação */
+/* ============================
+   BOTÕES / ÍCONES PADRONIZADOS
+   ============================ */
+
+.iconButton,
+.logoutButton,
 .actionIcon {
-  font-size: 1.3rem;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #6c757d;
+  font-size: 1.9rem;     /* ÍCONES MAIORES */
+  border-radius: 10px;
   cursor: pointer;
-  transition: color 0.2s;
+  border: none;
+  transition: background-color 0.25s, color 0.25s;
+  background: transparent;
 }
 
-.actionIcon:hover {
-  color: #343a40;
+.iconButton:hover,
+.actionIcon:hover,
+.logoutButton:hover {
+  background-color: #f8d7da;
+  color: #842029;
 }
 
-/* Perfil do Usuário (agora como um link) */
+/* PERFIL DO USUÁRIO */
 .userProfile {
   display: flex;
   align-items: center;
-  color: #495057;
-  text-decoration: none; /* Remove sublinhado do link */
+  text-decoration: none;
   padding: 0.5rem;
   border-radius: 8px;
   transition: background-color 0.2s;
+  color: #495057;
 }
 
 .userProfile:hover {
   background-color: #f1f3f5;
 }
 
+/* NOME + CARGO */
 .userInfo {
   display: flex;
   flex-direction: column;
-  white-space: nowrap; /* Impede que o nome quebre a linha */
-  justify-content: center; /* <-- ADICIONE ESTA LINHA */
+  justify-content: center;
+  white-space: nowrap;
   margin-left: 10px;
 }
 
 .userInfo strong {
   font-weight: 600;
-  font-size: 1.1rem; /* <-- Aumentado de tamanho */
-  line-height: 0.5;  /* <-- Diminuído para ficarem mais próximos */
-  /*margin-bottom: 2px; /* <-- Pequena margem para não grudarem totalmente */
+  font-size: 1.1rem;
+  line-height: 0.9;
 }
+
 .userInfo small {
-  font-size: 0.95rem; /* <-- Aumentado de tamanho */
+  font-size: 0.9rem;
   color: #6c757d;
-  line-height: 1.1;  /* <-- Diminuído para ficarem mais próximos */
+  line-height: 1.1;
 }
 
-/* Botão de Logout dedicado */
-.logoutButton {
-  background: none;
-  border: none;
-  color: #6c757d;
-  font-size: 1.3rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 8px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.logoutButton:hover {
-  background-color: #f8d7da; /* Fundo vermelho claro no hover */
-  color: #842029; /* Cor vermelha escura */
-}
-
+/* ÍCONE DO PERFIL */
 .userIcon {
-  font-size: 40px;   /* Define o novo tamanho do ícone */
-  color: #4a5568;   /* Cor do ícone */
-  flex-shrink: 0;  /* Impede que o ícone diminua */
-}
-
-.userInfo strong,
-.userInfo small {
-  margin: 0;         /* Remove margem entre nome e cargo */
-  line-height: 1.25; /* Aproxima as linhas */
+  font-size: 2.6rem;
+  color: #4a5568;
+  flex-shrink: 0;
 }

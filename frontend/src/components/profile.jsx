@@ -15,12 +15,15 @@ const ProfilePage = () => {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
 
-  // Busca os dados iniciais do perfil
+  // 🔧 Novo estado para foto de perfil
+  const [profileImage, setProfileImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        setError(null); // Limpa erros anteriores
+        setError(null);
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Usuário não autenticado.');
 
@@ -35,9 +38,12 @@ const ProfilePage = () => {
 
         const data = await response.json();
         setUserData(data);
-        // Inicializa os campos de edição com os dados atuais
         setEditName(data.name);
-        setEditPhone(data.phone || ''); // Usa string vazia se o telefone for nulo
+        setEditPhone(data.phone || '');
+
+        // 🔧 Carrega foto armazenada no localStorage
+        const savedImage = localStorage.getItem('profileImage');
+        if (savedImage) setProfileImage(savedImage);
 
       } catch (err) {
         setError(err.message);
@@ -46,39 +52,31 @@ const ProfilePage = () => {
       }
     };
     fetchProfileData();
-  }, []); // Roda apenas uma vez
+  }, []);
 
-  // Função para entrar no modo de edição
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  // Função para cancelar a edição
   const handleCancel = () => {
     setIsEditing(false);
-    // Restaura os valores originais nos campos de edição
     if (userData) {
       setEditName(userData.name);
       setEditPhone(userData.phone || '');
     }
+    setPreviewImage(null); // 🔧 Limpa preview da imagem ao cancelar
   };
 
-  // Função para salvar as alterações
   const handleSave = async () => {
-    setError(null); // Limpa erros
+    setError(null);
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Usuário não autenticado.');
 
-      // Prepara os dados a serem enviados (apenas os que podem ser editados)
-      const updatedData = {
-        name: editName,
-        phone: editPhone,
-      };
+      const updatedData = { name: editName, phone: editPhone };
 
-      // --- Chama a nova rota PUT do backend ---
       const response = await fetch('http://localhost:3001/api/profile', {
-        method: 'PUT', // Método HTTP para atualização
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -92,8 +90,15 @@ const ProfilePage = () => {
       }
 
       const savedData = await response.json();
-      setUserData(savedData); // Atualiza os dados exibidos com a resposta do backend
-      setIsEditing(false); // Sai do modo de edição
+      setUserData(savedData);
+      setIsEditing(false);
+
+      // 🔧 Salva foto no localStorage (temporário até ter backend para upload)
+      if (previewImage) {
+        localStorage.setItem('profileImage', previewImage);
+        setProfileImage(previewImage);
+      }
+
       alert('Perfil atualizado com sucesso!');
 
     } catch (err) {
@@ -101,7 +106,15 @@ const ProfilePage = () => {
     }
   };
 
-  // --- Renderização ---
+  // 🔧 Handler do upload de imagem
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+    }
+  };
+
   if (loading) return <div className="page-content"><h2>Carregando perfil...</h2></div>;
   if (error) return <div className="page-content"><h2 className={styles.errorMessage}>Erro: {error}</h2></div>;
   if (!userData) return <div className="page-content"><h2>Nenhum dado de usuário encontrado.</h2></div>;
@@ -110,8 +123,24 @@ const ProfilePage = () => {
     <div className="page-content">
       <div className={styles.profileCard}>
         <div className={styles.profileHeader}>
-          <FaUserCircle size={80} className={styles.profileAvatar} />
-          {/* Mostra input ou texto dependendo do modo de edição */}
+          {/* 🔧 Mostra foto ou ícone */}
+          {previewImage || profileImage ? (
+            <img
+              src={previewImage || profileImage}
+              alt="Foto de perfil"
+              className={styles.profilePic}
+            />
+          ) : (
+            <FaUserCircle size={80} className={styles.profileAvatar} />
+          )}
+
+          {isEditing ? (
+            <label className={styles.uploadLabel}>
+              Alterar foto
+              <input type="file" accept="image/*" onChange={handleImageUpload} className={styles.uploadInput}/>
+            </label>
+          ) : null}
+
           {isEditing ? (
             <input
               type="text"
@@ -127,13 +156,11 @@ const ProfilePage = () => {
 
         <div className={styles.profileDetails}>
           <h3>Detalhes do Usuário</h3>
-          {/* Email (não editável neste exemplo) */}
           <div className={styles.detailItem}>
             <FaEnvelope />
             <span>{userData.email}</span>
           </div>
 
-          {/* Telefone (editável) */}
           <div className={styles.detailItem}>
             <FaPhone />
             {isEditing ? (
@@ -149,7 +176,6 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {/* CRM (não editável, apenas exibido se for médico) */}
           {userData.role === 'Médico' && userData.crm && (
             <div className={styles.detailItem}>
               <FaIdBadge />
@@ -158,7 +184,6 @@ const ProfilePage = () => {
           )}
         </div>
 
-        {/* Botões de Ação */}
         <div className={styles.actionButtons}>
           {isEditing ? (
             <>
@@ -175,8 +200,8 @@ const ProfilePage = () => {
             </button>
           )}
         </div>
-         {/* Exibe mensagem de erro se houver */}
-         {error && !loading && <p className={styles.errorMessage}>{error}</p>}
+
+        {error && !loading && <p className={styles.errorMessage}>{error}</p>}
       </div>
     </div>
   );

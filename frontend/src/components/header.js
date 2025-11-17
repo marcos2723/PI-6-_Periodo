@@ -91,7 +91,7 @@ const Header = ({ onLogout }) => {
           <FaCommentDots />
         </Link>
         <div className={styles.actionIcon}>
-          <FaRegBell />
+          <FaRegBell />
         </div>
         <div className={styles.actionIcon}>
           <FaCog />
