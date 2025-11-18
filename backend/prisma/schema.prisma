@@ -120,6 +120,7 @@ model ChatMessage {
 model Service {
   id           Int          @id @default(autoincrement())
   name         String       @unique
+  description  String?
   price        Float
   transactions Transaction[]
   budgets      BudgetLine[]

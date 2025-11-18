@@ -9,6 +9,8 @@ const ConfiguracoesFinanceiras = () => {
 
   const [newName, setNewName] = useState('');
   const [newPrice, setNewPrice] = useState('');
+  // --- NOVO ESTADO PARA A DESCRIÇÃO ---
+  const [newDescription, setNewDescription] = useState('');
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -40,12 +42,19 @@ const ConfiguracoesFinanceiras = () => {
       const response = await fetch('http://localhost:3001/api/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: newName, price: newPrice })
+        // --- ENVIANDO A DESCRIÇÃO JUNTO ---
+        body: JSON.stringify({ 
+          name: newName, 
+          price: newPrice,
+          description: newDescription // <-- Novo campo
+        })
       });
       if (!response.ok) throw new Error('Falha ao salvar serviço');
       
+      // Limpa os campos
       setNewName('');
       setNewPrice('');
+      setNewDescription(''); // <-- Limpa a descrição
       fetchServices(); // Atualiza a lista
     } catch (err) {
       alert(err.message);
@@ -61,21 +70,40 @@ const ConfiguracoesFinanceiras = () => {
         <p>Cadastre os serviços que a clínica oferece e seus preços padrão.</p>
         
         <form className={styles.serviceForm} onSubmit={handleSaveService}>
-          <input 
-            type="text" 
-            placeholder="Nome do Serviço (ex: Consulta)" 
-            value={newName} 
-            onChange={(e) => setNewName(e.target.value)}
-            required
-          />
-          <input 
-            type="number" 
-            step="0.01"
-            placeholder="Preço (ex: 350.00)" 
-            value={newPrice} 
-            onChange={(e) => setNewPrice(e.target.value)}
-            required
-          />
+          <div className={styles.formGroup}>
+            <input 
+              type="text" 
+              placeholder="Nome do Serviço (ex: Consulta)" 
+              value={newName} 
+              onChange={(e) => setNewName(e.target.value)}
+              required
+              className={styles.inputField}
+            />
+          </div>
+
+          {/* --- NOVO CAMPO DE DESCRIÇÃO --- */}
+          <div className={styles.formGroup}>
+            <input 
+              type="text" 
+              placeholder="Descrição (Opcional)" 
+              value={newDescription} 
+              onChange={(e) => setNewDescription(e.target.value)}
+              className={styles.inputField}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <input 
+              type="number" 
+              step="0.01"
+              placeholder="Preço (ex: 350.00)" 
+              value={newPrice} 
+              onChange={(e) => setNewPrice(e.target.value)}
+              required
+              className={styles.inputField}
+            />
+          </div>
+
           <button type="submit" className={styles.saveButton}><FaSave /> Salvar Novo Serviço</button>
         </form>
 
@@ -84,15 +112,17 @@ const ConfiguracoesFinanceiras = () => {
             <thead>
               <tr>
                 <th>Nome do Serviço</th>
+                <th>Descrição</th> {/* --- NOVA COLUNA --- */}
                 <th>Preço Padrão (R$)</th>
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan="2">Carregando...</td></tr>}
-              {error && <tr><td colSpan="2">{error}</td></tr>}
+              {loading && <tr><td colSpan="3">Carregando...</td></tr>}
+              {error && <tr><td colSpan="3">{error}</td></tr>}
               {!loading && services.map((s) => (
                 <tr key={s.id}>
                   <td>{s.name}</td>
+                  <td>{s.description || '-'}</td> {/* --- EXIBE A DESCRIÇÃO --- */}
                   <td>{s.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                 </tr>
               ))}
