@@ -1,3 +1,4 @@
+/* --- Estilos do Modal (Baseado no seu CSS) --- */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -10,16 +11,20 @@
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(5px);
+  padding: 1rem; /* Adicionado para telas pequenas */
 }
 
 .modalContent {
   background: white;
-  padding: 2rem;
+  padding: 0;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 500px;
+  max-width: 700px; /* Aumentado para o formulário de 2 colunas */
   animation: fadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* Altura máxima */
 }
 
 @keyframes fadeIn {
@@ -31,9 +36,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
   border-bottom: 1px solid #e9ecef;
-  padding-bottom: 1rem;
+  padding: 1.5rem 2rem; /* Ajustado */
 }
 
 .modalHeader h2 {
@@ -57,14 +61,24 @@
 }
 
 .modalBody {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  padding: 2rem; /* Adicionado padding ao corpo */
+  overflow-y: auto; /* Adiciona scroll se o formulário for grande */
+}
+
+/* --- NOVOS ESTILOS PARA O FORMULÁRIO EM GRADE --- */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Duas colunas */
+  gap: 1.5rem; /* Espaço entre os campos */
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
+}
+
+.formGroup.fullSpan {
+  grid-column: 1 / -1; /* Ocupa as duas colunas */
 }
 
 .formGroup label {
@@ -73,14 +87,24 @@
   color: #495057;
 }
 
-.formGroup input {
+/* ATUALIZADO: Inclui select e input[type=date] */
+.formGroup input[type="text"],
+.formGroup input[type="email"],
+.formGroup input[type="tel"],
+.formGroup input[type="date"],
+.formGroup select {
   padding: 0.8rem;
   border: 1px solid #ced4da;
   border-radius: 8px;
   font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box; 
 }
 
-.formGroup input:focus {
+/* ATUALIZADO: Inclui select e input[type=date] */
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup input[type="date"]:focus {
   outline: none;
   border-color: #830021;
   box-shadow: 0 0 0 3px rgba(131, 0, 33, 0.15);
@@ -90,16 +114,17 @@
   color: #dc3545;
   font-weight: 500;
   text-align: center;
-  margin-bottom: -0.5rem;
+  margin-bottom: 1rem; /* Adicionado espaço */
+  grid-column: 1 / -1; /* Ocupa a grade inteira */
 }
 
 .modalFooter {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 2rem;
   border-top: 1px solid #e9ecef;
-  padding-top: 1rem;
+  padding: 1.5rem 2rem; /* Ajustado */
+  background-color: #f8f9fa; /* Fundo leve */
 }
 
 .cancelButton, .saveButton {

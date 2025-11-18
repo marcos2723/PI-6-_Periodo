@@ -1,5 +1,3 @@
-// backend/prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,23 +8,20 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  password  String
-  phone     String?
-  role      String
-  crm       String?
-  createdAt DateTime @default(now())
-
+  id                   Int           @id @default(autoincrement())
+  email                String        @unique
+  name                 String
+  password             String
+  phone                String?
+  role                 String
+  crm                  String?
+  createdAt            DateTime      @default(now())
   appointmentsAsDoctor Appointment[]
   stockMovements       StockMovement[]
   sentMessages         ChatMessage[]   @relation("Sender")
   receivedMessages     ChatMessage[]   @relation("Receiver")
-
-  // --- LINHAS NOVAS PARA O FINANCEIRO ---
-  budgets      Budget[]      // Orçamentos que este usuário criou
-  transactions Transaction[] // Lançamentos que este usuário registrou
+  budgets              Budget[]
+  transactions         Transaction[]
 }
 
 model Patient {
@@ -36,11 +31,20 @@ model Patient {
   phone     String?
   createdAt DateTime @default(now())
 
-  appointments Appointment[]
+  // --- NOVOS CAMPOS ADICIONADOS ---
+  cpf         String?    @unique // CPF (opcional mas único)
+  birthDate   DateTime?           // Data de Nascimento
+  gender      String?             // Sexo (ex: "Masculino", "Feminino")
+  address     String?             // Endereço completo (Rua, N, Bairro, Cidade...)
 
-  // --- LINHAS NOVAS PARA O FINANCEIRO ---
-  budgets      Budget[]      // Orçamentos deste paciente
-  transactions Transaction[] // Transações deste paciente
+  // Relação com Convênio
+  convenioId  Int?                // Chave estrangeira para o Convênio
+  convenio    Convenio?           @relation(fields: [convenioId], references: [id])
+  // --- FIM DOS NOVOS CAMPOS ---
+
+  appointments Appointment[]
+  budgets      Budget[]
+  transactions Transaction[]
 }
 
 model Appointment {
@@ -55,29 +59,29 @@ model Appointment {
 
 // --- Modelos de Estoque (Existentes) ---
 model Product {
-  id            Int      @id @default(autoincrement())
-  name          String
-  description   String?
-  sku           String   @unique
-  category      String?
-  unitMeasure   String
-  minStockLevel Int      @default(0)
-  location      String?
-  controlsLot   Boolean  @default(true)
-  controlsExpiry Boolean  @default(true)
-  lots          StockLot[]
-  movements     StockMovement[]
+  id             Int       @id @default(autoincrement())
+  name           String
+  description    String?
+  sku            String    @unique
+  category       String?
+  unitMeasure    String
+  minStockLevel  Int       @default(0)
+  location       String?
+  controlsLot    Boolean   @default(true)
+  controlsExpiry Boolean   @default(true)
+  lots           StockLot[]
+  movements      StockMovement[]
 }
 
 model StockLot {
-  id              Int             @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   lotNumber       String
   expiryDate      DateTime?
   initialQuantity Int
   currentQuantity Int
-  entryDate       DateTime        @default(now())
+  entryDate       DateTime       @default(now())
   productId       Int
-  product         Product         @relation(fields: [productId], references: [id])
+  product         Product        @relation(fields: [productId], references: [id])
   movements       StockMovement[]
 }
 
@@ -101,56 +105,49 @@ enum MovementType {
 }
 
 model ChatMessage {
-  id        Int      @id @default(autoincrement())
-  content   String
-  createdAt DateTime @default(now())
-  senderId  Int
-  sender    User     @relation("Sender", fields: [senderId], references: [id])
+  id         Int      @id @default(autoincrement())
+  content    String
+  createdAt  DateTime @default(now())
+  senderId   Int
+  sender     User     @relation("Sender", fields: [senderId], references: [id])
   receiverId Int
-  receiver  User     @relation("Receiver", fields: [receiverId], references: [id])
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id])
   @@index([senderId])
   @@index([receiverId])
 }
 
-// ----------------------------------------------
-// --- NOVOS MODELS PARA O MÓDULO FINANCEIRO ---
-// ----------------------------------------------
-
-// Catálogo de Serviços/Procedimentos
+// --- Modelos Financeiros ---
 model Service {
-  id    Int     @id @default(autoincrement())
-  name  String  @unique // Ex: "Consulta", "Ecocardiograma"
-  price Float   // Preço padrão
-  
-  // Relacionamentos
+  id           Int          @id @default(autoincrement())
+  name         String       @unique
+  price        Float
   transactions Transaction[]
   budgets      BudgetLine[]
 }
 
-// Convênios
 model Convenio {
   id   Int    @id @default(autoincrement())
-  name String @unique // Ex: "Unimed", "Bradesco Saúde"
-  
-  // Relacionamentos
+  name String @unique
+
   transactions Transaction[]
+
+  // --- ADICIONADO RELACIONAMENTO INVERSO ---
+  patients Patient[]
 }
 
-// Orçamentos
 model Budget {
   id        Int      @id @default(autoincrement())
   patientId Int
   patient   Patient  @relation(fields: [patientId], references: [id])
   userId    Int
-  user      User     @relation(fields: [userId], references: [id]) // Quem criou
+  user      User     @relation(fields: [userId], references: [id])
   date      DateTime @default(now())
   total     Float
-  status    String   // Ex: "Pendente", "Aprovado"
-  
-  lines BudgetLine[] // Linhas do orçamento
+  status    String
+
+  lines BudgetLine[]
 }
 
-// Linhas de um Orçamento
 model BudgetLine {
   id        Int     @id @default(autoincrement())
   budgetId  Int
@@ -161,27 +158,21 @@ model BudgetLine {
   unitPrice Float
 }
 
-// O "Livro Caixa" (Receitas e Despesas)
 model Transaction {
   id            Int      @id @default(autoincrement())
   date          DateTime @default(now())
   description   String
-  amount        Float    // Valor (positivo para Receita, negativo para Despesa)
-  type          String   // "RECEITA" ou "DESPESA"
-  paymentMethod String   // "Pix", "Cartão", "Dinheiro", "Convênio"
-  status        String   // "Pago" ou "Pendente" (para Contas a Pagar/Receber)
+  amount        Float
+  type          String
+  paymentMethod String
+  status        String
 
-  // Relacionamentos
-  patientId Int?
-  patient   Patient? @relation(fields: [patientId], references: [id])
-  
+  patientId  Int?
+  patient    Patient?  @relation(fields: [patientId], references: [id])
   convenioId Int?
   convenio   Convenio? @relation(fields: [convenioId], references: [id])
-
-  serviceId Int?
-  service   Service? @relation(fields: [serviceId], references: [id])
-
-  // Quem registrou a transação
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  serviceId  Int?
+  service    Service?  @relation(fields: [serviceId], references: [id])
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id])
 }

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaUserPlus, FaSearch, FaEdit, FaTrash } from 'react-icons/fa';
-import styles from './Pacientes.module.css'; // Certifique-se que este arquivo CSS existe
-import PatientModal from './PatientModal.jsx'; // Importa o modal de Paciente
+import styles from './Pacientes.module.css'; 
+import PatientModal from './PatientModal.jsx'; 
 
-// Hook customizado para "atrasar" a busca (evita uma chamada API a cada tecla digitada)
+// Hook customizado para "atrasar" a busca
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -22,27 +22,23 @@ const Pacientes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState(null); // Para saber se está editando ou criando
+  const [selectedPatient, setSelectedPatient] = useState(null); 
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 500); // Atraso de 500ms
+  const debouncedSearchQuery = useDebounce(searchQuery, 500); 
 
   // --- FUNÇÃO PARA BUSCAR PACIENTES ---
-  // useCallback evita que a função seja recriada em toda renderização
   const fetchPatients = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Pega o token do localStorage
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Usuário não autenticado. Faça login novamente.');
 
-      // Monta a URL para busca
       const url = new URL('http://localhost:3001/api/patients');
       if (debouncedSearchQuery) {
         url.searchParams.append('search', debouncedSearchQuery);
       }
 
-      // 2. Adiciona o token no cabeçalho da requisição
       const response = await fetch(url.toString(), {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -60,16 +56,15 @@ const Pacientes = () => {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchQuery]); // Só recria a função se o termo de busca (atrasado) mudar
+  }, [debouncedSearchQuery]); 
 
-  // Efeito que roda quando o componente carrega ou quando a busca muda
   useEffect(() => {
     fetchPatients();
   }, [fetchPatients]);
 
   // Funções para controlar o Modal
   const handleOpenModal = (patient = null) => {
-    setSelectedPatient(patient); // Se 'patient' for null, é um novo paciente. Se não, é edição.
+    setSelectedPatient(patient); 
     setIsModalOpen(true);
   };
 
@@ -81,7 +76,7 @@ const Pacientes = () => {
   // --- FUNÇÃO PARA SALVAR (CRIAR/EDITAR) PACIENTE ---
   const handleSavePatient = async (patientData) => {
     const token = localStorage.getItem('token');
-    const isEditing = !!patientData.id; // !! transforma em booleano (true se tiver ID, false se não)
+    const isEditing = !!patientData.id; 
     
     const url = isEditing
       ? `http://localhost:3001/api/patients/${patientData.id}`
@@ -89,14 +84,20 @@ const Pacientes = () => {
     
     const method = isEditing ? 'PUT' : 'POST';
 
+    const dataToSend = {
+      ...patientData,
+      convenioId: patientData.convenioId === 'particular' ? null : parseInt(patientData.convenioId),
+      birthDate: patientData.birthDate ? new Date(patientData.birthDate).toISOString() : null,
+    };
+
     try {
       const response = await fetch(url, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Envia o token
+          'Authorization': `Bearer ${token}`, 
         },
-        body: JSON.stringify(patientData),
+        body: JSON.stringify(dataToSend), 
       });
 
       const data = await response.json();
@@ -104,10 +105,10 @@ const Pacientes = () => {
         throw new Error(data.error || 'Falha ao salvar paciente.');
       }
 
-      fetchPatients(); // Atualiza a lista na tela
-      handleCloseModal(); // Fecha o modal
+      fetchPatients(); 
+      handleCloseModal(); 
     } catch (err) {
-      alert(`Erro: ${err.message}`); // Mostra um alerta com o erro
+      alert(`Erro: ${err.message}`); 
     }
   };
 
@@ -122,7 +123,7 @@ const Pacientes = () => {
       const response = await fetch(`http://localhost:3001/api/patients/${patientId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`, // Envia o token
+          'Authorization': `Bearer ${token}`, 
         },
       });
 
@@ -133,19 +134,19 @@ const Pacientes = () => {
 
       fetchPatients(); // Atualiza a lista
     } catch (err) {
-      alert(`Erro: ${err.message}`); // Mostra o erro (ex: "paciente tem agendamentos")
+      alert(`Erro: ${err.message}`); 
+      // A LINHA COM A DATA FOI REMOVIDA DAQUI
     }
   };
 
   return (
-    <div className="page-content">
-      {/* Cabeçalho da página de pacientes (busca e botão) */}
+    <div className="page-content"> 
       <div className={styles.patientHeader}>
         <div className={styles.searchContainer}>
           <FaSearch className={styles.searchIcon} />
           <input
             type="text"
-            placeholder="Buscar por nome ou email..."
+            placeholder="Buscar por nome, CPF ou email..." 
             className={styles.searchInput}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,21 +157,18 @@ const Pacientes = () => {
         </button>
       </div>
 
-      {/* Exibe o estado de carregamento */}
       {loading && <p>Carregando pacientes...</p>}
-      
-      {/* Exibe o estado de erro */}
       {error && <p className={styles.errorText}>{error}</p>}
       
-      {/* Exibe a tabela se não estiver carregando e não houver erro */}
       {!loading && !error && (
         <div className={styles.patientListContainer}>
           <table className={styles.patientTable}>
             <thead>
               <tr>
                 <th>Nome</th>
-                <th>Email</th>
+                <th>CPF</th>
                 <th>Telefone</th>
+                <th>Convênio</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -179,8 +177,9 @@ const Pacientes = () => {
                 patients.map((patient) => (
                   <tr key={patient.id}>
                     <td>{patient.name}</td>
-                    <td>{patient.email || 'N/A'}</td>
+                    <td>{patient.cpf || 'N/A'}</td>
                     <td>{patient.phone || 'N/A'}</td>
+                    <td>{patient.convenio ? patient.convenio.name : 'Particular'}</td>
                     <td className={styles.actionsCell}>
                       <button className={styles.actionButton} onClick={() => handleOpenModal(patient)}>
                         <FaEdit />
@@ -193,7 +192,7 @@ const Pacientes = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className={styles.noPatients}>Nenhum paciente encontrado.</td>
+                  <td colSpan="5" className={styles.noPatients}>Nenhum paciente encontrado.</td>
                 </tr>
               )}
             </tbody>
@@ -201,7 +200,6 @@ const Pacientes = () => {
         </div>
       )}
 
-      {/* O Modal só é renderizado se isModalOpen for true */}
       {isModalOpen && (
         <PatientModal
           isOpen={isModalOpen}
