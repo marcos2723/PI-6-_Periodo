@@ -6,9 +6,11 @@
 
 .kpiCard {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
+  justify-content: center;
+  gap: 0.25rem;           /* Reduzido de 0.5rem */
+  padding: 1rem 1rem;     /* Reduzido de 1.5rem 1rem */
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -16,32 +18,24 @@
 }
 
 .kpiIcon {
-  font-size: 2rem;
+  font-size: 1.25rem;      /* Reduzido de 1.5rem */
   color: var(--card-color);
   background-color: color-mix(in srgb, var(--card-color) 15%, transparent);
-  padding: 1rem;
+  padding: 0.6rem;        /* Reduzido de 0.75rem */
   border-radius: 50%;
   display: flex;
 }
 
-.kpiInfo {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
 .kpiTitle {
-  font-size: 0.9rem;
+  font-size: 0.85rem;     /* Reduzido de 0.9rem */
   color: #6c757d;
   font-weight: 500;
+  text-align: center;
 }
 
 .kpiValue {
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: clamp(1.25rem, 1.5vw + 1rem, 2.25rem);
+  font-size: 1.6rem;      /* Reduzido de 1.75rem */
 }
 
 .chartContainer {
@@ -54,9 +48,4 @@
 
 .errorText {
   color: #dc3545;
-}
-.errorText {
-  color: #dc3545;
-  font-weight: 500;
-  text-align: center;
 }

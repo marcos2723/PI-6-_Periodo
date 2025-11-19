@@ -7,17 +7,15 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
 
-// Componente para os cards (sem alteração)
+// Componente para os cards (AJUSTADO)
 const KpiCard = ({ title, value, icon, color }) => (
   <div className={styles.kpiCard} style={{ '--card-color': color }}>
+    {/* Removemos o div 'kpiInfo' e colocamos tudo no mesmo nível */}
     <div className={styles.kpiIcon}>{icon}</div>
-    <div className={styles.kpiInfo}>
-      <span className={styles.kpiTitle}>{title}</span>
-      <span className={styles.kpiValue}>
-        {(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-      </span>
-      
-    </div>
+    <span className={styles.kpiTitle}>{title}</span>
+    <span className={styles.kpiValue}>
+      {(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+    </span>
   </div>
 );
 

@@ -12,7 +12,6 @@ import Agenda from './components/agenda/Agenda.jsx';
 import Pacientes from './components/pacientes/Pacientes.jsx';
 import VisaoGeral from './components/Financeiro/VisaoGeral.jsx';
 import ContasPagar from './components/Financeiro/Lancamentos.jsx';
-import Movimentacao from './components/Financeiro/ConfiguracoesFinanceiras.jsx';
 import Orcamentos from './components/Financeiro/Orcamentos.jsx';
 import Produtos from './components/estoque/Produtos.js';
 import Entrada from './components/estoque/Entrada.js';
@@ -21,17 +20,20 @@ import ChatPage from './components/chat/ChatPage.jsx';
 import Medicos from './components/medicos/Medicos';
 import Logs from './components/logs/Logs';
 import Configuracoes from './components/configuracoes.jsx';
+import ConfiguracoesFinanceiras from './components/Financeiro/ConfiguracoesFinanceiras.jsx';
 
 // Estilos globais
 import './App.css'; 
-import ConfiguracoesFinanceiras from './components/Financeiro/ConfiguracoesFinanceiras.jsx';
 
 // --- 2. LAYOUT PRINCIPAL DO SISTEMA (PRIVADO) ---
 const MainLayout = ({ onLogout }) => (
   <div className="app-container">
     <Sidebar />
     <main className="content-area">
+      
+      {/* O Header fica aqui e aparece em TODAS as telas automaticamente */}
       <Header onLogout={onLogout} /> 
+      
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/agenda" element={<Agenda />} />
@@ -44,7 +46,10 @@ const MainLayout = ({ onLogout }) => (
         <Route path="/financeiro/Orcamentos" element={<Orcamentos />} />
         <Route path="/financeiro/Lancamentos" element={<ContasPagar />} />
 
-        <Route path="/configuracoes" element={<><Header onLogout={onLogout} /><Configuracoes /></>} />
+        {/* --- CORREÇÃO DO BUG DO HEADER DUPLICADO AQUI --- */}
+        {/* Estava: element={<><Header ... /><Configuracoes /></>} */}
+        {/* Ficou apenas o componente, pois o Header já está no topo do layout */}
+        <Route path="/configuracoes" element={<Configuracoes />} />
 
         {/* Rotas do Estoque */}
         <Route path="/estoque/produtos" element={<Produtos />} />
@@ -52,10 +57,7 @@ const MainLayout = ({ onLogout }) => (
         <Route path="/estoque/saida" element={<Saida />} />
         
         <Route path="/chat" element={<ChatPage />} />
-        
-        {/* --- CORREÇÃO AQUI: Removido o <MainLayout> extra --- */}
         <Route path="/medicos" element={<Medicos />} />
-
         <Route path="/logs" element={<Logs />} />
       </Routes>
     </main>

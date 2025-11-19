@@ -8,62 +8,53 @@ datasource db {
 }
 
 model User {
-  id                   Int           @id @default(autoincrement())
-  email                String        @unique
-  name                 String
-  password             String
-  phone                String?
-  role                 String
-  crm                  String?
-  createdAt            DateTime      @default(now())
+  id               Int             @id @default(autoincrement())
+  email            String          @unique
+  name             String
+  password         String
+  phone            String?
+  role             String
+  crm              String?
+  createdAt        DateTime        @default(now())
   appointmentsAsDoctor Appointment[]
-  stockMovements       StockMovement[]
-  sentMessages         ChatMessage[] @relation("Sender")
-  receivedMessages     ChatMessage[] @relation("Receiver")
-  budgets              Budget[]
-  transactions         Transaction[]
-  logs SystemLog[]
+  stockMovements   StockMovement[]
+  sentMessages     ChatMessage[]   @relation("Sender")
+  receivedMessages ChatMessage[]   @relation("Receiver")
+  budgets          Budget[]
+  transactions     Transaction[]
+  logs             SystemLog[]
 }
 
 model Patient {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String?  @unique
-  phone     String?
-  createdAt DateTime @default(now())
-
-  // --- NOVOS CAMPOS ADICIONADOS ---
-  cpf        String?   @unique
-  birthDate  DateTime?
-  gender     String?
-  address    String?
-
-  // Relação com Convênio
-  convenioId Int?
-  convenio   Convenio? @relation(fields: [convenioId], references: [id])
-  // --- FIM DOS NOVOS CAMPOS ---
-
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String?       @unique
+  phone        String?
+  createdAt    DateTime      @default(now())
+  cpf          String?       @unique
+  birthDate    DateTime?
+  gender       String?
+  address      String?
+  convenioId   Int?
+  convenio     Convenio?     @relation(fields: [convenioId], references: [id])
   appointments Appointment[]
   budgets      Budget[]
   transactions Transaction[]
 }
 
 model Appointment {
-  id        Int      @id @default(autoincrement())
-  date      DateTime
-  status    String
-  patientId Int
-  doctorId  Int
-  doctor    User     @relation(fields: [doctorId], references: [id])
-  patient   Patient  @relation(fields: [patientId], references: [id])
-  serviceId Int?
-  service   Service? @relation(fields: [serviceId], references: [id])
-
-  // --- MUDANÇA AQUI: Relacionamento com os anexos ---
+  id          Int          @id @default(autoincrement())
+  date        DateTime
+  status      String
+  patientId   Int
+  doctorId    Int
+  doctor      User         @relation(fields: [doctorId], references: [id])
+  patient     Patient      @relation(fields: [patientId], references: [id])
+  serviceId   Int?
+  service     Service?     @relation(fields: [serviceId], references: [id])
   attachments Attachment[] 
 }
 
-// --- Modelos de Estoque (Existentes) ---
 model Product {
   id             Int             @id @default(autoincrement())
   name           String
@@ -122,7 +113,6 @@ model ChatMessage {
   @@index([receiverId])
 }
 
-// --- Modelos Financeiros ---
 model Service {
   id           Int           @id @default(autoincrement())
   name         String        @unique
@@ -180,39 +170,32 @@ model Transaction {
   user          User      @relation(fields: [userId], references: [id])
 }
 
-// --- NOVO MODELO DE ANEXOS (EXAMES) ---
 model Attachment {
   id            Int         @id @default(autoincrement())
-  fileName      String      // Nome original (ex: hemograma.pdf)
-  filePath      String      // Nome salvo no disco (ex: 1740000-hemograma.pdf)
+  fileName      String
+  filePath      String
   createdAt     DateTime    @default(now())
-  
   appointmentId Int
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
 
 model SystemLog {
   id        Int      @id @default(autoincrement())
-  action    String   // Ex: "Agendou Consulta", "Adicionou Produto"
-  details   String?  // Ex: "Paciente: João, Data: 20/11"
+  action    String
+  details   String?
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
 }
 
-
-// Configurações Gerais da Clínica
 model ClinicSettings {
-  id          Int      @id @default(autoincrement())
-  clinicName  String   @default("Minha Clínica")
-  cnpj        String?
-  phone       String?
-  address     String?
-  email       String?
-  
-  // Horário de Funcionamento (em formato de string JSON ou simples)
-  openTime    String   @default("08:00")
-  closeTime   String   @default("18:00")
-  
-  updatedAt   DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  clinicName String   @default("Minha Clínica")
+  cnpj       String?
+  phone      String?
+  address    String?
+  email      String?
+  openTime   String   @default("08:00")
+  closeTime  String   @default("18:00")
+  updatedAt  DateTime @updatedAt
 }
