@@ -19,6 +19,7 @@ import Entrada from './components/estoque/Entrada.js';
 import Saida from './components/estoque/Saida.js';
 import ChatPage from './components/chat/ChatPage.jsx'; 
 import Medicos from './components/medicos/Medicos';
+import Logs from './components/logs/Logs';
 
 // Estilos globais
 import './App.css'; 
@@ -51,6 +52,8 @@ const MainLayout = ({ onLogout }) => (
         
         {/* --- CORREÇÃO AQUI: Removido o <MainLayout> extra --- */}
         <Route path="/medicos" element={<Medicos />} />
+
+        <Route path="/logs" element={<Logs />} />
       </Routes>
     </main>
   </div>

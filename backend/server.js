@@ -13,6 +13,13 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// --- IMPORTANTE: Importar o Middleware AQUI em cima ---
+const { authenticateToken } = require('./middleware/auth.js'); 
+
+// --- IMPORTAÇÃO DAS ROTAS DE ESTOQUE ---
+const productRoutes = require('./routes/product.routes.js');
+const stockRoutes = require('./routes/stock.routes.js');
+
 // --- 2. CONFIGURAÇÃO INICIAL ---
 const prisma = new PrismaClient();
 const app = express();
@@ -29,7 +36,6 @@ app.use(cors());
 app.use(express.json());
 
 // --- 2.1 CONFIGURAÇÃO DO UPLOAD (MULTER) ---
-// Isso precisa ficar aqui em cima para a variável 'upload' existir antes das rotas
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = 'uploads/';
@@ -41,7 +47,6 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     // Salva com timestamp para evitar nomes duplicados
-    // Exemplo: 15-17389999-exame.pdf
     cb(null, `${req.params.id || 'temp'}-${Date.now()}-${file.originalname}`);
   }
 });
@@ -52,12 +57,35 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static('uploads'));
 
 
-// --- 3. MIDDLEWARES ---
-const { authenticateToken } = require('./middleware/auth.js'); 
+// --- FUNÇÃO AUXILIAR PARA LOGS (Salva no Banco) ---
+const createLog = async (userId, action, details) => {
+  try {
+    // Verifica se userId existe (pode ser nulo em rotas públicas ou erros)
+    if (!userId) return;
+    
+    await prisma.systemLog.create({
+      data: { userId, action, details }
+    });
+  } catch (e) {
+    console.error("Erro ao salvar log:", e);
+  }
+};
 
-// Importação de Rotas Modulares
-const productRoutes = require('./routes/product.routes.js');
-const stockRoutes = require('./routes/stock.routes.js');
+// --- ROTA PARA LER OS LOGS (TELA DE LOGS) ---
+app.get('/api/logs', authenticateToken, async (req, res) => {
+  try {
+    const logs = await prisma.systemLog.findMany({
+      take: 100, // Pega os últimos 100 logs
+      orderBy: { createdAt: 'desc' },
+      include: { 
+        user: { select: { name: true, role: true } } 
+      }
+    });
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar logs.' });
+  }
+});
 
 
 // =================================================================
@@ -182,6 +210,10 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
       data: { ...(name && { name }), ...(phone && { phone }) },
       select: { id: true, email: true, name: true, phone: true, role: true, crm: true },
     });
+    
+    // LOG DE PERFIL
+    await createLog(req.user.userId, 'Atualizou Perfil', 'Alterou dados cadastrais');
+
     res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar perfil.' });
@@ -264,7 +296,6 @@ app.get('/api/appointments', authenticateToken, async (req, res) => {
       include: { patient: { select: { name: true } }, doctor: { select: { name: true } }, service: { select: { name: true }} },
       orderBy: { date: 'asc' }
     });
-    // CORREÇÃO ANTERIOR: Nome da variável
     const formattedAppointments = appointments.map(app => ({
       id: app.id, 
       title: `${app.service ? app.service.name : 'Consulta'} - ${app.patient.name} (${app.doctor.name})`, 
@@ -301,6 +332,15 @@ app.post('/api/appointments', authenticateToken, async (req, res) => {
       },
       include: { patient: { select: { name: true } }, doctor: { select: { name: true } } }
     });
+
+    // LOG: Agendamento Criado
+    const pat = await prisma.patient.findUnique({ where: { id: parseInt(patientId) } });
+    await createLog(
+      req.user.userId, 
+      'Agendou Consulta', 
+      `Paciente: ${pat?.name} - Data: ${format(new Date(date), 'dd/MM HH:mm')}`
+    );
+
     res.status(201).json(newApp);
   } catch (error) {
     console.error("Erro criar agendamento:", error);
@@ -310,7 +350,21 @@ app.post('/api/appointments', authenticateToken, async (req, res) => {
 
 app.delete('/api/appointments/:id', authenticateToken, async (req, res) => {
   try {
-    await prisma.appointment.delete({ where: { id: parseInt(req.params.id) } });
+    const id = parseInt(req.params.id);
+    // Busca antes de deletar para usar no Log
+    const appt = await prisma.appointment.findUnique({ where: { id }, include: { patient: true } });
+    
+    await prisma.appointment.delete({ where: { id } });
+    
+    // LOG: Agendamento Excluído
+    if (appt) {
+      await createLog(
+        req.user.userId, 
+        'Excluiu Consulta', 
+        `Paciente: ${appt.patient.name} - Data Original: ${format(new Date(appt.date), 'dd/MM')}`
+      );
+    }
+
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Erro ao deletar.' });
@@ -343,12 +397,11 @@ app.get('/api/patients', authenticateToken, async (req, res) => {
   }
 });
 
-// --- ROTA DE HISTÓRICO (ATUALIZADA COM AUTO-FINALIZAR E ANEXOS) ---
+// --- ROTA DE HISTÓRICO ---
 app.get('/api/patients/:id/history', authenticateToken, async (req, res) => {
   try {
     const patientId = parseInt(req.params.id);
     
-    // 1. Atualiza status de consultas passadas automaticamente
     const now = new Date();
     await prisma.appointment.updateMany({
       where: {
@@ -359,13 +412,12 @@ app.get('/api/patients/:id/history', authenticateToken, async (req, res) => {
       data: { status: 'Finalizado' }
     });
 
-    // 2. Busca o histórico INCLUINDO os anexos
     const history = await prisma.appointment.findMany({
       where: { patientId: patientId },
       include: {
         doctor: { select: { name: true } },
         service: { select: { name: true } },
-        attachments: true // Traz os arquivos do banco
+        attachments: true 
       },
       orderBy: { date: 'desc' }
     });
@@ -377,7 +429,7 @@ app.get('/api/patients/:id/history', authenticateToken, async (req, res) => {
       serviceName: app.service ? app.service.name : 'Consulta Padrão',
       status: app.status, 
       notes: app.notes || '',
-      attachments: app.attachments // Manda para o frontend
+      attachments: app.attachments 
     }));
 
     res.status(200).json(formattedHistory);
@@ -387,7 +439,7 @@ app.get('/api/patients/:id/history', authenticateToken, async (req, res) => {
   }
 });
 
-// --- ROTA DE UPLOAD DE EXAMES (AGORA FUNCIONA POIS 'upload' EXISTE) ---
+// --- ROTA DE UPLOAD DE EXAMES ---
 app.post('/api/appointments/:id/upload', authenticateToken, upload.array('files'), async (req, res) => {
   try {
     const appointmentId = parseInt(req.params.id);
@@ -397,7 +449,6 @@ app.post('/api/appointments/:id/upload', authenticateToken, upload.array('files'
       return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
     }
 
-    // Salva no banco de dados
     const createdAttachments = await Promise.all(
       files.map(file => {
         return prisma.attachment.create({
@@ -410,6 +461,9 @@ app.post('/api/appointments/:id/upload', authenticateToken, upload.array('files'
       })
     );
 
+    // LOG: Upload
+    await createLog(req.user.userId, 'Upload de Exame', `Anexou ${files.length} arquivos na consulta #${appointmentId}`);
+
     res.status(201).json(createdAttachments);
   } catch (error) {
     console.error("Erro upload:", error);
@@ -417,33 +471,28 @@ app.post('/api/appointments/:id/upload', authenticateToken, upload.array('files'
   }
 });
 
-// --- NOVA ROTA: Deletar Anexo ---
+// --- ROTA: Deletar Anexo ---
 app.delete('/api/attachments/:id', authenticateToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
 
-    // 1. Busca o anexo no banco para saber o nome do arquivo
-    const attachment = await prisma.attachment.findUnique({
-      where: { id: id }
-    });
+    const attachment = await prisma.attachment.findUnique({ where: { id: id } });
 
     if (!attachment) {
       return res.status(404).json({ error: 'Anexo não encontrado.' });
     }
 
-    // 2. Tenta apagar o arquivo físico da pasta 'uploads'
     const filePath = path.join(__dirname, 'uploads', attachment.filePath);
-    // Verifica se o arquivo existe antes de tentar apagar
     if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath); // Deleta o arquivo
+      fs.unlinkSync(filePath); 
     }
 
-    // 3. Deleta o registro do banco de dados
-    await prisma.attachment.delete({
-      where: { id: id }
-    });
+    await prisma.attachment.delete({ where: { id: id } });
 
-    res.status(204).send(); // Sucesso sem conteúdo
+    // LOG: Delete Anexo
+    await createLog(req.user.userId, 'Excluiu Anexo', `Removeu arquivo: ${attachment.fileName}`);
+
+    res.status(204).send(); 
   } catch (error) {
     console.error("Erro ao deletar anexo:", error);
     res.status(500).json({ error: 'Erro ao deletar anexo.' });
@@ -481,6 +530,10 @@ app.post('/api/patients', authenticateToken, async (req, res) => {
         convenioId: (convenioId && !isNaN(parseInt(convenioId))) ? parseInt(convenioId) : null
       },
     });
+
+    // LOG: Paciente Criado
+    await createLog(req.user.userId, 'Cadastrou Paciente', `Nome: ${newPatient.name}`);
+
     res.status(201).json(newPatient);
   } catch (error) {
     if (error.code === 'P2002') return res.status(409).json({ error: 'Dado duplicado (Email ou CPF).' });
@@ -501,6 +554,10 @@ app.put('/api/patients/:id', authenticateToken, async (req, res) => {
         convenioId: (convenioId && !isNaN(parseInt(convenioId))) ? parseInt(convenioId) : null
       },
     });
+
+    // LOG: Paciente Editado
+    await createLog(req.user.userId, 'Editou Paciente', `Atualizou dados de: ${updatedPatient.name}`);
+
     res.status(200).json(updatedPatient);
   } catch (error) {
     if (error.code === 'P2002') return res.status(409).json({ error: 'Email ou CPF já em uso por outro paciente.' });
@@ -514,11 +571,18 @@ app.delete('/api/patients/:id', authenticateToken, async (req, res) => {
     const appointments = await prisma.appointment.count({ where: { patientId: parseInt(id), date: { gte: new Date() } } });
     if (appointments > 0) return res.status(409).json({ error: 'Paciente tem agendamentos futuros.' });
     
+    // Busca nome antes de deletar para o log
+    const pat = await prisma.patient.findUnique({ where: { id: parseInt(id) }});
+
     await prisma.appointment.deleteMany({ where: { patientId: parseInt(id) } });
     await prisma.budget.deleteMany({ where: { patientId: parseInt(id) } });
     await prisma.transaction.deleteMany({ where: { patientId: parseInt(id) } });
     
     await prisma.patient.delete({ where: { id: parseInt(id) } });
+
+    // LOG: Paciente Excluído
+    if(pat) await createLog(req.user.userId, 'Excluiu Paciente', `Removeu o paciente: ${pat.name}`);
+
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -529,7 +593,6 @@ app.delete('/api/patients/:id', authenticateToken, async (req, res) => {
 // --- ROTA: MÉDICOS COM ESTATÍSTICAS ---
 app.get('/api/doctors-stats', authenticateToken, async (req, res) => {
   try {
-    // Definir o intervalo do mês atual
     const date = new Date();
     const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
     const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -537,19 +600,11 @@ app.get('/api/doctors-stats', authenticateToken, async (req, res) => {
     const doctors = await prisma.user.findMany({
       where: { role: 'Médico' },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        crm: true,
-        // Conta as consultas FINALIZADAS neste mês
+        id: true, name: true, email: true, phone: true, crm: true,
         _count: {
           select: { 
             appointmentsAsDoctor: { 
-              where: { 
-                date: { gte: firstDay, lte: lastDay },
-                status: 'Finalizado' // Se quiser contar agendadas também, remova essa linha
-              } 
+              where: { date: { gte: firstDay, lte: lastDay }, status: 'Finalizado' } 
             } 
           }
         }
@@ -557,7 +612,6 @@ app.get('/api/doctors-stats', authenticateToken, async (req, res) => {
       orderBy: { name: 'asc' }
     });
 
-    // Formata para o frontend
     const formattedDoctors = doctors.map(doc => ({
       ...doc,
       consultationsMonth: doc._count.appointmentsAsDoctor
@@ -570,18 +624,17 @@ app.get('/api/doctors-stats', authenticateToken, async (req, res) => {
   }
 });
 
-// --- ROTA: Histórico do Médico (Últimas 7 consultas) ---
+// --- ROTA: Histórico do Médico ---
 app.get('/api/doctors/:id/history', authenticateToken, async (req, res) => {
   try {
     const doctorId = parseInt(req.params.id);
-
     const history = await prisma.appointment.findMany({
-      where: { doctorId: doctorId }, // Filtra pelo médico
-      take: 7,                       // Pega apenas as 7 últimas
-      orderBy: { date: 'desc' },     // Da mais recente para a mais antiga
+      where: { doctorId: doctorId },
+      take: 7,
+      orderBy: { date: 'desc' },
       include: {
-        patient: { select: { name: true } }, // Traz o nome do paciente
-        service: { select: { name: true } }  // Traz o nome do serviço
+        patient: { select: { name: true } },
+        service: { select: { name: true } }
       }
     });
 
@@ -618,6 +671,10 @@ app.post('/api/services', authenticateToken, async (req, res) => {
   if (!name || !price) return res.status(400).json({ error: 'Nome e preço obrigatórios.' });
   try {
     const newService = await prisma.service.create({ data: { name, price: parseFloat(price), description: description || null } });
+    
+    // LOG: Serviço Criado
+    await createLog(req.user.userId, 'Novo Serviço', `Criou serviço: ${name} - R$ ${price}`);
+
     res.status(201).json(newService);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao criar serviço.' });
@@ -664,6 +721,10 @@ app.post('/api/transactions', authenticateToken, async (req, res) => {
         userId: req.user.userId
       }
     });
+
+    // LOG: Financeiro
+    await createLog(req.user.userId, 'Lançamento Financeiro', `${type}: ${description} - R$ ${amount}`);
+
     res.status(201).json(newTransaction);
   } catch (error) {
     console.error(error);
@@ -771,6 +832,10 @@ app.post('/api/budgets', authenticateToken, async (req, res) => {
       },
       include: { patient: { select: { name: true } } }
     });
+
+    // LOG: Orçamento
+    await createLog(req.user.userId, 'Criou Orçamento', `Total: R$ ${total}`);
+
     res.status(201).json(budget);
   } catch (error) {
     console.error(error);
@@ -782,7 +847,7 @@ app.post('/api/budgets', authenticateToken, async (req, res) => {
 // =================================================================
 //                      MÓDULO ESTOQUE
 // =================================================================
-// (As rotas de estoque e produto estão em arquivos separados)
+// Importação das rotas de estoque e produtos
 app.use('/api', productRoutes);
 app.use('/api', stockRoutes);
 

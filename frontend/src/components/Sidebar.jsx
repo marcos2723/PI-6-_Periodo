@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import logoCardio from '../assets/images/logo_cardio.jpeg'; 
 import styles from './Sidebar.module.css';
+import { FaClipboardList } from 'react-icons/fa';
 import { 
   FaTachometerAlt, 
   FaUserInjured, 
@@ -56,6 +57,11 @@ const Sidebar = () => {
             <li><NavLink to="/financeiro/ConfiguracoesFinanceiras" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Configurações Financeiras</NavLink></li>
             <li><NavLink to="/financeiro/Lancamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Lançamentos</NavLink></li>
             <li><NavLink to="/financeiro/Orcamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Orçamentos</NavLink></li>
+            <li>
+              <NavLink to="/logs" className={({ isActive }) => isActive ? styles.activeLink : styles.navLink}>
+                <FaClipboardList /> <span>Logs do Sistema</span>
+              </NavLink>
+            </li>
           </ul>
         </li>
         
