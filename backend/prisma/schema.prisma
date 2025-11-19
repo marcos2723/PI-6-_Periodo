@@ -18,8 +18,8 @@ model User {
   createdAt            DateTime      @default(now())
   appointmentsAsDoctor Appointment[]
   stockMovements       StockMovement[]
-  sentMessages         ChatMessage[]   @relation("Sender")
-  receivedMessages     ChatMessage[]   @relation("Receiver")
+  sentMessages         ChatMessage[] @relation("Sender")
+  receivedMessages     ChatMessage[] @relation("Receiver")
   budgets              Budget[]
   transactions         Transaction[]
 }
@@ -32,14 +32,14 @@ model Patient {
   createdAt DateTime @default(now())
 
   // --- NOVOS CAMPOS ADICIONADOS ---
-  cpf         String?    @unique // CPF (opcional mas único)
-  birthDate   DateTime?           // Data de Nascimento
-  gender      String?             // Sexo (ex: "Masculino", "Feminino")
-  address     String?             // Endereço completo (Rua, N, Bairro, Cidade...)
+  cpf        String?   @unique
+  birthDate  DateTime?
+  gender     String?
+  address    String?
 
   // Relação com Convênio
-  convenioId  Int?                // Chave estrangeira para o Convênio
-  convenio    Convenio?           @relation(fields: [convenioId], references: [id])
+  convenioId Int?
+  convenio   Convenio? @relation(fields: [convenioId], references: [id])
   // --- FIM DOS NOVOS CAMPOS ---
 
   appointments Appointment[]
@@ -55,35 +55,38 @@ model Appointment {
   doctorId  Int
   doctor    User     @relation(fields: [doctorId], references: [id])
   patient   Patient  @relation(fields: [patientId], references: [id])
-  serviceId Int?      // Pode ser nulo (opcional)
-  service   Service?  @relation(fields: [serviceId], references: [id])
+  serviceId Int?
+  service   Service? @relation(fields: [serviceId], references: [id])
+
+  // --- MUDANÇA AQUI: Relacionamento com os anexos ---
+  attachments Attachment[] 
 }
 
 // --- Modelos de Estoque (Existentes) ---
 model Product {
-  id             Int       @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   name           String
   description    String?
-  sku            String    @unique
+  sku            String          @unique
   category       String?
   unitMeasure    String
-  minStockLevel  Int       @default(0)
+  minStockLevel  Int             @default(0)
   location       String?
-  controlsLot    Boolean   @default(true)
-  controlsExpiry Boolean   @default(true)
+  controlsLot    Boolean         @default(true)
+  controlsExpiry Boolean         @default(true)
   lots           StockLot[]
   movements      StockMovement[]
 }
 
 model StockLot {
-  id              Int            @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   lotNumber       String
   expiryDate      DateTime?
   initialQuantity Int
   currentQuantity Int
-  entryDate       DateTime       @default(now())
+  entryDate       DateTime        @default(now())
   productId       Int
-  product         Product        @relation(fields: [productId], references: [id])
+  product         Product         @relation(fields: [productId], references: [id])
   movements       StockMovement[]
 }
 
@@ -120,8 +123,8 @@ model ChatMessage {
 
 // --- Modelos Financeiros ---
 model Service {
-  id           Int          @id @default(autoincrement())
-  name         String       @unique
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
   description  String?
   price        Float
   transactions Transaction[]
@@ -130,26 +133,22 @@ model Service {
 }
 
 model Convenio {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
   transactions Transaction[]
-
-  // --- ADICIONADO RELACIONAMENTO INVERSO ---
-  patients Patient[]
+  patients     Patient[]
 }
 
 model Budget {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   patientId Int
-  patient   Patient  @relation(fields: [patientId], references: [id])
+  patient   Patient      @relation(fields: [patientId], references: [id])
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  date      DateTime @default(now())
+  user      User         @relation(fields: [userId], references: [id])
+  date      DateTime     @default(now())
   total     Float
   status    String
-
-  lines BudgetLine[]
+  lines     BudgetLine[]
 }
 
 model BudgetLine {
@@ -163,20 +162,30 @@ model BudgetLine {
 }
 
 model Transaction {
-  id            Int      @id @default(autoincrement())
-  date          DateTime @default(now())
+  id            Int       @id @default(autoincrement())
+  date          DateTime  @default(now())
   description   String
   amount        Float
   type          String
   paymentMethod String
   status        String
+  patientId     Int?
+  patient       Patient?  @relation(fields: [patientId], references: [id])
+  convenioId    Int?
+  convenio      Convenio? @relation(fields: [convenioId], references: [id])
+  serviceId     Int?
+  service       Service?  @relation(fields: [serviceId], references: [id])
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id])
+}
 
-  patientId  Int?
-  patient    Patient?  @relation(fields: [patientId], references: [id])
-  convenioId Int?
-  convenio   Convenio? @relation(fields: [convenioId], references: [id])
-  serviceId  Int?
-  service    Service?  @relation(fields: [serviceId], references: [id])
-  userId     Int
-  user       User      @relation(fields: [userId], references: [id])
+// --- NOVO MODELO DE ANEXOS (EXAMES) ---
+model Attachment {
+  id            Int         @id @default(autoincrement())
+  fileName      String      // Nome original (ex: hemograma.pdf)
+  filePath      String      // Nome salvo no disco (ex: 1740000-hemograma.pdf)
+  createdAt     DateTime    @default(now())
+  
+  appointmentId Int
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }

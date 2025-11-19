@@ -8,6 +8,10 @@ const jwt = require('jsonwebtoken');
 const { format } = require('date-fns');
 const http = require('http');
 const { Server } = require('socket.io');
+// Importações para upload de arquivos
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 // --- 2. CONFIGURAÇÃO INICIAL ---
 const prisma = new PrismaClient();
@@ -23,6 +27,30 @@ const io = new Server(httpServer, {
 
 app.use(cors());
 app.use(express.json());
+
+// --- 2.1 CONFIGURAÇÃO DO UPLOAD (MULTER) ---
+// Isso precisa ficar aqui em cima para a variável 'upload' existir antes das rotas
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = 'uploads/';
+    // Cria a pasta se não existir
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    // Salva com timestamp para evitar nomes duplicados
+    // Exemplo: 15-17389999-exame.pdf
+    cb(null, `${req.params.id || 'temp'}-${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Libera a pasta 'uploads' para que o navegador consiga baixar os arquivos
+app.use('/uploads', express.static('uploads'));
+
 
 // --- 3. MIDDLEWARES ---
 const { authenticateToken } = require('./middleware/auth.js'); 
@@ -174,7 +202,6 @@ app.get('/api/dashboard-data', authenticateToken, async (req, res) => {
     const totalAppointments = await prisma.appointment.count({ where: { date: { gte: today, lt: tomorrow } } });
     const waitingCount = await prisma.appointment.count({ where: { date: { gte: now, lt: tomorrow }, status: 'Chegou' } });
     
-    // Receita do dia (baseada em transações financeiras pagas)
     const revenueResult = await prisma.transaction.aggregate({
       _sum: { amount: true },
       where: { type: 'RECEITA', status: 'Pago', date: { gte: today, lt: tomorrow } }
@@ -234,18 +261,18 @@ app.get('/api/doctors', authenticateToken, async (req, res) => {
 app.get('/api/appointments', authenticateToken, async (req, res) => {
   try {
     const appointments = await prisma.appointment.findMany({
-      include: { patient: { select: { name: true } }, doctor: { select: { name: true } },service: { select: { name: true }} },
+      include: { patient: { select: { name: true } }, doctor: { select: { name: true } }, service: { select: { name: true }} },
       orderBy: { date: 'asc' }
     });
+    // CORREÇÃO ANTERIOR: Nome da variável
     const formattedAppointments = appointments.map(app => ({
       id: app.id, 
-      // Título formatado: "Consulta - Paciente (Médico) - [Serviço]"
       title: `${app.service ? app.service.name : 'Consulta'} - ${app.patient.name} (${app.doctor.name})`, 
       start: app.date,
       end: new Date(new Date(app.date).getTime() + 30 * 60000), 
       resourceId: app.doctorId, 
       status: app.status,
-      serviceId: app.serviceId // <-- Envia o ID para o frontend saber qual é
+      serviceId: app.serviceId 
     }));
     res.status(200).json(formattedAppointments);
   } catch (error) {
@@ -254,7 +281,6 @@ app.get('/api/appointments', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/appointments', authenticateToken, async (req, res) => {
-  // Recebemos 'serviceId' do corpo
   const { patientId, doctorId, date, status, serviceId } = req.body;
   
   if (!patientId || !doctorId || !date) return res.status(400).json({ error: 'Dados incompletos.' });
@@ -271,13 +297,10 @@ app.post('/api/appointments', authenticateToken, async (req, res) => {
         doctorId: parseInt(doctorId), 
         date: new Date(date), 
         status: status || 'Aguardando',
-        // Salva o serviço se ele foi enviado
         serviceId: serviceId ? parseInt(serviceId) : null 
       },
       include: { patient: { select: { name: true } }, doctor: { select: { name: true } } }
     });
-    
-    // Resposta simplificada (o frontend vai recarregar a lista de qualquer forma)
     res.status(201).json(newApp);
   } catch (error) {
     console.error("Erro criar agendamento:", error);
@@ -312,11 +335,118 @@ app.get('/api/patients', authenticateToken, async (req, res) => {
     const patients = await prisma.patient.findMany({
       where: whereClause,
       orderBy: { name: 'asc' },
-      include: { convenio: { select: { name: true } } } // Inclui nome do convênio
+      include: { convenio: { select: { name: true } } } 
     });
     res.status(200).json(patients);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar pacientes.' });
+  }
+});
+
+// --- ROTA DE HISTÓRICO (ATUALIZADA COM AUTO-FINALIZAR E ANEXOS) ---
+app.get('/api/patients/:id/history', authenticateToken, async (req, res) => {
+  try {
+    const patientId = parseInt(req.params.id);
+    
+    // 1. Atualiza status de consultas passadas automaticamente
+    const now = new Date();
+    await prisma.appointment.updateMany({
+      where: {
+        patientId: patientId,
+        date: { lt: now },
+        status: 'Aguardando'
+      },
+      data: { status: 'Finalizado' }
+    });
+
+    // 2. Busca o histórico INCLUINDO os anexos
+    const history = await prisma.appointment.findMany({
+      where: { patientId: patientId },
+      include: {
+        doctor: { select: { name: true } },
+        service: { select: { name: true } },
+        attachments: true // Traz os arquivos do banco
+      },
+      orderBy: { date: 'desc' }
+    });
+
+    const formattedHistory = history.map(app => ({
+      id: app.id,
+      date: app.date,
+      doctorName: app.doctor.name,
+      serviceName: app.service ? app.service.name : 'Consulta Padrão',
+      status: app.status, 
+      notes: app.notes || '',
+      attachments: app.attachments // Manda para o frontend
+    }));
+
+    res.status(200).json(formattedHistory);
+  } catch (error) {
+    console.error("Erro ao buscar histórico:", error);
+    res.status(500).json({ error: 'Erro ao buscar histórico do paciente.' });
+  }
+});
+
+// --- ROTA DE UPLOAD DE EXAMES (AGORA FUNCIONA POIS 'upload' EXISTE) ---
+app.post('/api/appointments/:id/upload', authenticateToken, upload.array('files'), async (req, res) => {
+  try {
+    const appointmentId = parseInt(req.params.id);
+    const files = req.files;
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+    }
+
+    // Salva no banco de dados
+    const createdAttachments = await Promise.all(
+      files.map(file => {
+        return prisma.attachment.create({
+          data: {
+            fileName: file.originalname,
+            filePath: file.filename,
+            appointmentId: appointmentId
+          }
+        });
+      })
+    );
+
+    res.status(201).json(createdAttachments);
+  } catch (error) {
+    console.error("Erro upload:", error);
+    res.status(500).json({ error: 'Erro ao salvar arquivos.' });
+  }
+});
+
+// --- NOVA ROTA: Deletar Anexo ---
+app.delete('/api/attachments/:id', authenticateToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    // 1. Busca o anexo no banco para saber o nome do arquivo
+    const attachment = await prisma.attachment.findUnique({
+      where: { id: id }
+    });
+
+    if (!attachment) {
+      return res.status(404).json({ error: 'Anexo não encontrado.' });
+    }
+
+    // 2. Tenta apagar o arquivo físico da pasta 'uploads'
+    const filePath = path.join(__dirname, 'uploads', attachment.filePath);
+    // Verifica se o arquivo existe antes de tentar apagar
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath); // Deleta o arquivo
+    }
+
+    // 3. Deleta o registro do banco de dados
+    await prisma.attachment.delete({
+      where: { id: id }
+    });
+
+    res.status(204).send(); // Sucesso sem conteúdo
+  } catch (error) {
+    console.error("Erro ao deletar anexo:", error);
+    res.status(500).json({ error: 'Erro ao deletar anexo.' });
   }
 });
 
@@ -363,7 +493,6 @@ app.put('/api/patients/:id', authenticateToken, async (req, res) => {
   const { name, email, phone, cpf, birthDate, gender, address, convenioId } = req.body;
   if (!name || !email) return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
   try {
-    // (Validações de duplicidade simplificadas para brevidade, o Prisma P2002 pega a maioria)
     const updatedPatient = await prisma.patient.update({
       where: { id: parseInt(id) },
       data: {
@@ -385,7 +514,6 @@ app.delete('/api/patients/:id', authenticateToken, async (req, res) => {
     const appointments = await prisma.appointment.count({ where: { patientId: parseInt(id), date: { gte: new Date() } } });
     if (appointments > 0) return res.status(409).json({ error: 'Paciente tem agendamentos futuros.' });
     
-    // Limpa dados relacionados antes de deletar (ou use Cascade no Prisma)
     await prisma.appointment.deleteMany({ where: { patientId: parseInt(id) } });
     await prisma.budget.deleteMany({ where: { patientId: parseInt(id) } });
     await prisma.transaction.deleteMany({ where: { patientId: parseInt(id) } });
@@ -470,7 +598,7 @@ app.post('/api/transactions', authenticateToken, async (req, res) => {
   }
 });
 
-// 4. Resumo Financeiro (Visão Geral)
+// 4. Resumo Financeiro
 app.get('/api/financial-summary', authenticateToken, async (req, res) => {
   try {
     const totalRevenue = await prisma.transaction.aggregate({
@@ -505,7 +633,6 @@ app.get('/api/financial-chart-data', authenticateToken, async (req, res) => {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    // Busca Transações
     const transactions = await prisma.transaction.findMany({
       where: {
         status: 'Pago',
@@ -513,9 +640,7 @@ app.get('/api/financial-chart-data', authenticateToken, async (req, res) => {
       }
     });
 
-    // Processamento (Agrupar por dia)
     const dataMap = new Map();
-    // Inicializa os últimos 30 dias com zero
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
@@ -523,7 +648,6 @@ app.get('/api/financial-chart-data', authenticateToken, async (req, res) => {
       dataMap.set(key, { name: key, Receita: 0, Despesa: 0 });
     }
 
-    // Preenche com dados reais
     transactions.forEach(t => {
       const key = format(new Date(t.date), 'dd/MM');
       if (dataMap.has(key)) {
