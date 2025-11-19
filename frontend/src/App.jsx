@@ -17,7 +17,8 @@ import Orcamentos from './components/Financeiro/Orcamentos.jsx';
 import Produtos from './components/estoque/Produtos.js';
 import Entrada from './components/estoque/Entrada.js';
 import Saida from './components/estoque/Saida.js';
-import ChatPage from './components/chat/ChatPage.jsx'; // --- NOVO: Importa a página de Chat ---
+import ChatPage from './components/chat/ChatPage.jsx'; 
+import Medicos from './components/medicos/Medicos';
 
 // Estilos globais
 import './App.css'; 
@@ -25,61 +26,64 @@ import ConfiguracoesFinanceiras from './components/Financeiro/ConfiguracoesFinan
 
 // --- 2. LAYOUT PRINCIPAL DO SISTEMA (PRIVADO) ---
 const MainLayout = ({ onLogout }) => (
-  <div className="app-container">
-    <Sidebar />
-    <main className="content-area">
-      <Header onLogout={onLogout} /> 
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/agenda" element={<Agenda />} />
-        <Route path="/pacientes" element={<Pacientes />} />
-        <Route path="/perfil" element={<Profile />} />
-        
-        {/* Rotas do Financeiro */}
-        <Route path="/financeiro/VisaoGeral" element={<VisaoGeral />} />
-        <Route path="/financeiro/ConfiguracoesFinanceiras" element={<ConfiguracoesFinanceiras />} />
-        <Route path="/financeiro/Orcamentos" element={<Orcamentos />} />
-        <Route path="/financeiro/Lancamentos" element={<ContasPagar />} />
-
-        {/* Rotas do Estoque */}
-        <Route path="/estoque/produtos" element={<Produtos />} />
-        <Route path="/estoque/entrada" element={<Entrada />} />
-        <Route path="/estoque/saida" element={<Saida />} />
+  <div className="app-container">
+    <Sidebar />
+    <main className="content-area">
+      <Header onLogout={onLogout} /> 
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/agenda" element={<Agenda />} />
+        <Route path="/pacientes" element={<Pacientes />} />
+        <Route path="/perfil" element={<Profile />} />
         
-        <Route path="/chat" element={<ChatPage />} /> {/* --- NOVO: Registra a rota de Chat --- */}
-      </Routes>
-    </main>
-  </div>
+        {/* Rotas do Financeiro */}
+        <Route path="/financeiro/VisaoGeral" element={<VisaoGeral />} />
+        <Route path="/financeiro/ConfiguracoesFinanceiras" element={<ConfiguracoesFinanceiras />} />
+        <Route path="/financeiro/Orcamentos" element={<Orcamentos />} />
+        <Route path="/financeiro/Lancamentos" element={<ContasPagar />} />
+
+        {/* Rotas do Estoque */}
+        <Route path="/estoque/produtos" element={<Produtos />} />
+        <Route path="/estoque/entrada" element={<Entrada />} />
+        <Route path="/estoque/saida" element={<Saida />} />
+        
+        <Route path="/chat" element={<ChatPage />} />
+        
+        {/* --- CORREÇÃO AQUI: Removido o <MainLayout> extra --- */}
+        <Route path="/medicos" element={<Medicos />} />
+      </Routes>
+    </main>
+  </div>
 );
 
 // --- 3. COMPONENTE PRINCIPAL APP (CONTROLA O ACESSO) ---
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
-  const handleLogin = () => setIsAuthenticated(true);
+  const handleLogin = () => setIsAuthenticated(true);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-  };
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+  };
 
-  return (
-    <Router>
-      <Routes>
-        {!isAuthenticated ? (
-          // --- ROTAS PÚBLICAS (Se não estiver logado) ---
-          <>
-            <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-            <Route path="/cadastro" element={<Cadastro />} />
-            <Route path="*" element={<Navigate to="/login" />} />
-          </>
-        ) : (
-          // --- ROTAS PRIVADAS (Se estiver logado) ---
-          <Route path="/*" element={<MainLayout onLogout={handleLogout} />} />
-        )}
-      </Routes>
-    </Router>
-  );
+  return (
+    <Router>
+      <Routes>
+        {!isAuthenticated ? (
+          // --- ROTAS PÚBLICAS (Se não estiver logado) ---
+          <>
+            <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </>
+        ) : (
+          // --- ROTAS PRIVADAS (Se estiver logado) ---
+          <Route path="/*" element={<MainLayout onLogout={handleLogout} />} />
+        )}
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;

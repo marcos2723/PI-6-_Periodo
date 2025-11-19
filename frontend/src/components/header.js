@@ -64,7 +64,7 @@ const Header = ({ onLogout }) => {
       {/* --- SEÇÃO ESQUERDA --- */}
       <div className={`${styles.headerSection} ${styles.leftSection}`}>
         <Link to="/perfil" className={styles.userProfile}>
-          <FaUserCircle size={styles.userIcon} />
+          <FaUserCircle className={styles.userIcon} />
           <div className={styles.userInfo}>
 
             {/* --- MUDANÇA 4: Usar os dados do estado --- */}

@@ -526,6 +526,79 @@ app.delete('/api/patients/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// --- ROTA: MÉDICOS COM ESTATÍSTICAS ---
+app.get('/api/doctors-stats', authenticateToken, async (req, res) => {
+  try {
+    // Definir o intervalo do mês atual
+    const date = new Date();
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+    const doctors = await prisma.user.findMany({
+      where: { role: 'Médico' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        crm: true,
+        // Conta as consultas FINALIZADAS neste mês
+        _count: {
+          select: { 
+            appointmentsAsDoctor: { 
+              where: { 
+                date: { gte: firstDay, lte: lastDay },
+                status: 'Finalizado' // Se quiser contar agendadas também, remova essa linha
+              } 
+            } 
+          }
+        }
+      },
+      orderBy: { name: 'asc' }
+    });
+
+    // Formata para o frontend
+    const formattedDoctors = doctors.map(doc => ({
+      ...doc,
+      consultationsMonth: doc._count.appointmentsAsDoctor
+    }));
+
+    res.status(200).json(formattedDoctors);
+  } catch (error) {
+    console.error("Erro ao buscar médicos:", error);
+    res.status(500).json({ error: 'Erro ao buscar lista de médicos.' });
+  }
+});
+
+// --- ROTA: Histórico do Médico (Últimas 7 consultas) ---
+app.get('/api/doctors/:id/history', authenticateToken, async (req, res) => {
+  try {
+    const doctorId = parseInt(req.params.id);
+
+    const history = await prisma.appointment.findMany({
+      where: { doctorId: doctorId }, // Filtra pelo médico
+      take: 7,                       // Pega apenas as 7 últimas
+      orderBy: { date: 'desc' },     // Da mais recente para a mais antiga
+      include: {
+        patient: { select: { name: true } }, // Traz o nome do paciente
+        service: { select: { name: true } }  // Traz o nome do serviço
+      }
+    });
+
+    const formattedHistory = history.map(app => ({
+      id: app.id,
+      date: app.date,
+      patientName: app.patient.name,
+      serviceName: app.service ? app.service.name : 'Consulta Padrão',
+      status: app.status
+    }));
+
+    res.status(200).json(formattedHistory);
+  } catch (error) {
+    console.error("Erro histórico médico:", error);
+    res.status(500).json({ error: 'Erro ao buscar histórico.' });
+  }
+});
 
 // =================================================================
 //                      MÓDULO FINANCEIRO
@@ -712,6 +785,46 @@ app.post('/api/budgets', authenticateToken, async (req, res) => {
 // (As rotas de estoque e produto estão em arquivos separados)
 app.use('/api', productRoutes);
 app.use('/api', stockRoutes);
+
+// =================================================================
+//             TAREFA AUTOMÁTICA (BACKGROUND JOB)
+// =================================================================
+
+// Função que verifica e finaliza consultas vencidas
+const checkExpiredAppointments = async () => {
+  try {
+    const now = new Date();
+    
+    // Atualiza todas as consultas que:
+    // 1. A data já passou (lt: now)
+    // 2. O status ainda é 'Aguardando' ou 'Confirmado' (opcional)
+    const result = await prisma.appointment.updateMany({
+      where: {
+        date: { lt: now },       // Data menor que agora
+        status: 'Aguardando'     // Status que queremos mudar
+      },
+      data: { 
+        status: 'Finalizado' 
+      }
+    });
+
+    // Só mostra no terminal se atualizou alguma coisa, pra não poluir
+    if (result.count > 0) {
+      console.log(`[Sistema] ${result.count} consultas antigas foram finalizadas automaticamente.`);
+    }
+    
+  } catch (error) {
+    console.error("[Sistema] Erro ao atualizar consultas vencidas:", error);
+  }
+};
+
+// Inicia o temporizador: Roda a cada 1 minuto (60000 milissegundos)
+setInterval(checkExpiredAppointments, 60000);
+
+// Roda uma vez assim que o servidor liga, pra garantir
+checkExpiredAppointments();
+
+// =================================================================
 
 
 // =================================================================

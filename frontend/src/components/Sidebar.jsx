@@ -1,17 +1,20 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import logoCardio from '../assets/images/logo_cardio.jpeg'; // A logo já está importada
+import logoCardio from '../assets/images/logo_cardio.jpeg'; 
 import styles from './Sidebar.module.css';
 import { 
-  FaTachometerAlt, FaUserInjured, FaCalendarAlt, FaCoins, FaBoxes 
+  FaTachometerAlt, 
+  FaUserInjured, 
+  FaCalendarAlt, 
+  FaCoins, 
+  FaBoxes, 
+  FaUserMd // <--- Adicionei este ícone novo
 } from 'react-icons/fa';
 
 const Sidebar = () => {
   return (
     <nav className={styles.sidebar}>
-      {/* --- A MUDANÇA É AQUI --- */}
       <div className={styles.sidebarHeader}>
-        {/* Trocamos o texto 'iCardio' pela sua imagem de logo */}
         <img src={logoCardio} alt="Logo iCardio" className={styles.logo} />
       </div>
       
@@ -35,6 +38,13 @@ const Sidebar = () => {
         </li>
 
         <li className={styles.navHeading}>Administrativo</li>
+
+        {/* --- NOVO ITEM: MÉDICOS --- */}
+        <li>
+          <NavLink to="/medicos" className={({ isActive }) => isActive ? styles.activeLink : styles.navLink}>
+            <FaUserMd /> <span>Médicos</span>
+          </NavLink>
+        </li>
 
         {/* --- Seção Financeiro --- */}
         <li>
