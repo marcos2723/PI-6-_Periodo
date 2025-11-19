@@ -15,15 +15,69 @@
   color: white;
   padding: 2.5rem 1.5rem;
   text-align: center;
-  position: relative; /* Para posicionar elementos, se necessário */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
-/* Avatar (ícone de usuário) */
-.profileAvatar {
+/* --- Área da Foto --- */
+.avatarContainer {
+  position: relative;
   margin-bottom: 1rem;
-  border: 4px solid rgba(255, 255, 255, 0.5); /* Borda semitransparente */
-  border-radius: 50%; /* Deixa o ícone redondo */
+  width: 120px;
+  height: 120px;
 }
+
+/* Ícone padrão quando não tem foto */
+.defaultAvatar {
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.5);
+}
+
+/* A foto de perfil real */
+.profilePic {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Corta a imagem para caber no círculo sem distorcer */
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Botão de upload (câmera) - Só aparece ao editar */
+.uploadButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: white;
+  color: #343a40;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+  border: 2px solid #e9ecef;
+}
+
+.uploadButton:hover {
+  transform: scale(1.1);
+  color: #830021;
+}
+
+.hiddenInput {
+  display: none; /* Esconde o input de arquivo feio */
+}
+/* --- Fim da área da foto --- */
+
 
 /* Nome do usuário no cabeçalho */
 .profileHeader h2 {
@@ -77,7 +131,7 @@
 .editInputName {
   width: 80%;
   padding: 0.5rem 1rem;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 600;
   text-align: center;
   border: 2px solid rgba(255, 255, 255, 0.7);
@@ -163,12 +217,11 @@
   background-color: #5c636a;
 }
 
-/* Estilo para mensagens de erro */
 .errorMessage {
-  color: #dc3545; /* Vermelho */
+  color: #dc3545;
   font-weight: 500;
   text-align: center;
-  margin: -1rem 1.5rem 1.5rem 1.5rem; /* Ajuste de espaço */
+  margin: -1rem 1.5rem 1.5rem 1.5rem;
   padding: 0.5rem;
   background-color: #f8d7da;
   border: 1px solid #f5c2c7;

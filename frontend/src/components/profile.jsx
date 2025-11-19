@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import styles from './profile.module.css';
-import { FaUserCircle, FaEnvelope, FaPhone, FaIdBadge, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { FaUserCircle, FaEnvelope, FaPhone, FaIdBadge, FaEdit, FaSave, FaTimes, FaCamera } from 'react-icons/fa';
 
 const ProfilePage = () => {
-  // Estados para dados, carregamento e erros
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Estado para controlar o modo de edição
+  // Estado para o modo de edição
   const [isEditing, setIsEditing] = useState(false);
 
-  // Estados temporários para os campos editáveis
+  // Estados dos campos editáveis
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
 
-  // 🔧 Novo estado para foto de perfil
-  const [profileImage, setProfileImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+  // --- Estados para a Imagem ---
+  const [profileImage, setProfileImage] = useState(null); // Imagem salva
+  const [previewImage, setPreviewImage] = useState(null); // Pré-visualização durante edição
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        setError(null);
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Usuário não autenticado.');
 
@@ -33,7 +31,7 @@ const ProfilePage = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Não foi possível carregar os dados do perfil.');
+          throw new Error(errorData.error || 'Erro ao carregar perfil.');
         }
 
         const data = await response.json();
@@ -41,9 +39,12 @@ const ProfilePage = () => {
         setEditName(data.name);
         setEditPhone(data.phone || '');
 
-        // 🔧 Carrega foto armazenada no localStorage
-        const savedImage = localStorage.getItem('profileImage');
-        if (savedImage) setProfileImage(savedImage);
+        // --- Carrega a foto salva no navegador ---
+        // Usamos o ID do usuário na chave para que cada usuário tenha sua foto
+        const savedImage = localStorage.getItem(`profileImage_${data.id}`);
+        if (savedImage) {
+          setProfileImage(savedImage);
+        }
 
       } catch (err) {
         setError(err.message);
@@ -54,25 +55,36 @@ const ProfilePage = () => {
     fetchProfileData();
   }, []);
 
+  // --- Função para processar o upload da imagem ---
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Converte o arquivo para Base64 para poder salvar no localStorage
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleEdit = () => {
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setPreviewImage(null); // Limpa o preview
     if (userData) {
       setEditName(userData.name);
       setEditPhone(userData.phone || '');
     }
-    setPreviewImage(null); // 🔧 Limpa preview da imagem ao cancelar
   };
 
   const handleSave = async () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      if (!token) throw new Error('Usuário não autenticado.');
-
       const updatedData = { name: editName, phone: editPhone };
 
       const response = await fetch('http://localhost:3001/api/profile', {
@@ -84,62 +96,60 @@ const ProfilePage = () => {
         body: JSON.stringify(updatedData),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Não foi possível salvar as alterações.');
-      }
+      if (!response.ok) throw new Error('Falha ao salvar alterações.');
 
       const savedData = await response.json();
       setUserData(savedData);
       setIsEditing(false);
 
-      // 🔧 Salva foto no localStorage (temporário até ter backend para upload)
+      // --- Salva a imagem definitivamente ---
       if (previewImage) {
-        localStorage.setItem('profileImage', previewImage);
+        localStorage.setItem(`profileImage_${savedData.id}`, previewImage);
         setProfileImage(previewImage);
+        setPreviewImage(null);
       }
 
       alert('Perfil atualizado com sucesso!');
-
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // 🔧 Handler do upload de imagem
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setPreviewImage(previewUrl);
-    }
-  };
-
-  if (loading) return <div className="page-content"><h2>Carregando perfil...</h2></div>;
-  if (error) return <div className="page-content"><h2 className={styles.errorMessage}>Erro: {error}</h2></div>;
-  if (!userData) return <div className="page-content"><h2>Nenhum dado de usuário encontrado.</h2></div>;
+  if (loading) return <div className="page-content"><h2>Carregando...</h2></div>;
+  if (error && !isEditing) return <div className="page-content"><h2>Erro: {error}</h2></div>;
+  if (!userData) return <div className="page-content"><h2>Usuário não encontrado.</h2></div>;
 
   return (
     <div className="page-content">
       <div className={styles.profileCard}>
         <div className={styles.profileHeader}>
-          {/* 🔧 Mostra foto ou ícone */}
-          {previewImage || profileImage ? (
-            <img
-              src={previewImage || profileImage}
-              alt="Foto de perfil"
-              className={styles.profilePic}
-            />
-          ) : (
-            <FaUserCircle size={80} className={styles.profileAvatar} />
-          )}
+          
+          {/* --- Área da Foto --- */}
+          <div className={styles.avatarContainer}>
+            {/* Mostra o preview (se houver), ou a imagem salva, ou o ícone padrão */}
+            {previewImage || profileImage ? (
+              <img 
+                src={previewImage || profileImage} 
+                alt="Perfil" 
+                className={styles.profilePic} 
+              />
+            ) : (
+              <FaUserCircle className={styles.defaultAvatar} />
+            )}
 
-          {isEditing ? (
-            <label className={styles.uploadLabel}>
-              Alterar foto
-              <input type="file" accept="image/*" onChange={handleImageUpload} className={styles.uploadInput}/>
-            </label>
-          ) : null}
+            {/* Botão de upload (só aparece na edição) */}
+            {isEditing && (
+              <label className={styles.uploadButton}>
+                <FaCamera />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  className={styles.hiddenInput}
+                />
+              </label>
+            )}
+          </div>
 
           {isEditing ? (
             <input
@@ -172,7 +182,7 @@ const ProfilePage = () => {
                 className={styles.editInput}
               />
             ) : (
-              <span>{userData.phone || 'Não informado'}</span>
+              <span>{userData.phone || 'Telefone não cadastrado'}</span>
             )}
           </div>
 
@@ -187,11 +197,11 @@ const ProfilePage = () => {
         <div className={styles.actionButtons}>
           {isEditing ? (
             <>
-              <button onClick={handleSave} className={`${styles.actionButton} ${styles.saveButton}`}>
-                <FaSave /> Salvar
-              </button>
               <button onClick={handleCancel} className={`${styles.actionButton} ${styles.cancelButton}`}>
                 <FaTimes /> Cancelar
+              </button>
+              <button onClick={handleSave} className={`${styles.actionButton} ${styles.saveButton}`}>
+                <FaSave /> Salvar
               </button>
             </>
           ) : (
@@ -200,8 +210,8 @@ const ProfilePage = () => {
             </button>
           )}
         </div>
-
-        {error && !loading && <p className={styles.errorMessage}>{error}</p>}
+        
+        {error && isEditing && <p className={styles.errorMessage}>{error}</p>}
       </div>
     </div>
   );

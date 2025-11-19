@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import logoCardio from '../assets/images/logo_cardio.jpeg'; 
+import logoCardio from '../assets/images/logo_cardio.png'; 
 import styles from './Sidebar.module.css';
 import { FaClipboardList } from 'react-icons/fa';
 import { 
