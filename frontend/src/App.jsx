@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './components/login/login.jsx';
 import Cadastro from './components/login/cadastro.jsx';
 import Sidebar from './components/Sidebar.jsx';
-import Header from './components/header.js';
+import Header from './components/header.jsx';
 import Profile from './components/profile.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import Agenda from './components/agenda/Agenda.jsx';
@@ -20,6 +20,7 @@ import Saida from './components/estoque/Saida.js';
 import ChatPage from './components/chat/ChatPage.jsx'; 
 import Medicos from './components/medicos/Medicos';
 import Logs from './components/logs/Logs';
+import Configuracoes from './components/configuracoes.jsx';
 
 // Estilos globais
 import './App.css'; 
@@ -42,6 +43,8 @@ const MainLayout = ({ onLogout }) => (
         <Route path="/financeiro/ConfiguracoesFinanceiras" element={<ConfiguracoesFinanceiras />} />
         <Route path="/financeiro/Orcamentos" element={<Orcamentos />} />
         <Route path="/financeiro/Lancamentos" element={<ContasPagar />} />
+
+        <Route path="/configuracoes" element={<><Header onLogout={onLogout} /><Configuracoes /></>} />
 
         {/* Rotas do Estoque */}
         <Route path="/estoque/produtos" element={<Produtos />} />

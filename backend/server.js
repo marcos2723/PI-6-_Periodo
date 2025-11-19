@@ -188,6 +188,57 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// --- ROTAS DE CONFIGURAÇÃO DA CLÍNICA ---
+
+// GET: Buscar configurações
+app.get('/api/settings', authenticateToken, async (req, res) => {
+  try {
+    // Tenta buscar a primeira configuração existente
+    let settings = await prisma.clinicSettings.findFirst();
+
+    // Se não existir nenhuma, cria uma padrão
+    if (!settings) {
+      settings = await prisma.clinicSettings.create({
+        data: {
+          clinicName: 'Minha Clínica de Cardiologia',
+          openTime: '08:00',
+          closeTime: '18:00'
+        }
+      });
+    }
+    res.status(200).json(settings);
+  } catch (error) {
+    console.error("Erro ao buscar configurações:", error);
+    res.status(500).json({ error: 'Erro ao buscar configurações.' });
+  }
+});
+
+// PUT: Atualizar configurações
+app.put('/api/settings', authenticateToken, async (req, res) => {
+  const { clinicName, cnpj, phone, address, email, openTime, closeTime } = req.body;
+
+  try {
+    // Busca o ID da configuração existente para atualizar
+    const existingSettings = await prisma.clinicSettings.findFirst();
+    
+    if (!existingSettings) {
+      return res.status(404).json({ error: "Configurações não encontradas." });
+    }
+
+    const updatedSettings = await prisma.clinicSettings.update({
+      where: { id: existingSettings.id },
+      data: {
+        clinicName, cnpj, phone, address, email, openTime, closeTime
+      }
+    });
+
+    res.status(200).json(updatedSettings);
+  } catch (error) {
+    console.error("Erro ao atualizar configurações:", error);
+    res.status(500).json({ error: 'Erro ao atualizar configurações.' });
+  }
+});
+
 app.get('/api/profile', authenticateToken, async (req, res) => {
   try {
     const userProfile = await prisma.user.findUnique({

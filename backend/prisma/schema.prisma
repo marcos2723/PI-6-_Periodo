@@ -199,3 +199,20 @@ model SystemLog {
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
 }
+
+
+// Configurações Gerais da Clínica
+model ClinicSettings {
+  id          Int      @id @default(autoincrement())
+  clinicName  String   @default("Minha Clínica")
+  cnpj        String?
+  phone       String?
+  address     String?
+  email       String?
+  
+  // Horário de Funcionamento (em formato de string JSON ou simples)
+  openTime    String   @default("08:00")
+  closeTime   String   @default("18:00")
+  
+  updatedAt   DateTime @updatedAt
+}

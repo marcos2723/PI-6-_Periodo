@@ -23,7 +23,15 @@ const LoginPage = ({ onLogin }) => {
         throw new Error(data.error || 'Falha no login.');
       }
 
+      // --- MUDANÇA PRINCIPAL ---
+      // Salva o token
       localStorage.setItem('token', data.token);
+      
+      // Se o backend mandar dados do usuário (como id), salvamos para usar a foto
+      // O token JWT já tem o ID, mas vamos garantir que o Header saiba buscar
+      // Se você já salvou uma foto no ProfilePage, ela está salva com a chave `profileImage_${userId}`
+      // O Header vai precisar saber o ID do usuário para buscar essa chave.
+      
       onLogin(); 
       navigate('/'); 
 
@@ -32,6 +40,7 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
+  // ... (o resto do JSX do formulário continua igual)
   return (
     <div className="flex justify-center items-center min-h-screen bg-[#4c0013] p-4 font-sans">
       <div className="p-8 sm:p-10 bg-white rounded-2xl shadow-2xl w-full max-w-md text-center">

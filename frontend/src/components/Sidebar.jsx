@@ -24,7 +24,7 @@ const Sidebar = () => {
         
         <li>
           <NavLink to="/" className={({ isActive }) => isActive ? styles.activeLink : styles.navLink}>
-            <FaTachometerAlt /> <span>Dashboard</span>
+            <FaTachometerAlt /> <span>Tela Inicial</span>
           </NavLink>
         </li>
         <li>
