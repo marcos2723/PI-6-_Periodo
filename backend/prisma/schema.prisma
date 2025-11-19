@@ -55,6 +55,8 @@ model Appointment {
   doctorId  Int
   doctor    User     @relation(fields: [doctorId], references: [id])
   patient   Patient  @relation(fields: [patientId], references: [id])
+  serviceId Int?      // Pode ser nulo (opcional)
+  service   Service?  @relation(fields: [serviceId], references: [id])
 }
 
 // --- Modelos de Estoque (Existentes) ---
@@ -124,6 +126,7 @@ model Service {
   price        Float
   transactions Transaction[]
   budgets      BudgetLine[]
+  appointments Appointment[]
 }
 
 model Convenio {

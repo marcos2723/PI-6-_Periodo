@@ -1,28 +1,32 @@
 // frontend/src/components/AppointmentModal.jsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './AppointmentModal.module.css';
 
-// Função para formatar a data para o input datetime-local (ex: "2025-11-10T14:30")
+// Função para formatar a data para o input datetime-local
 const formatDateTimeForInput = (date) => {
   if (!date) return '';
   const d = new Date(date);
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); // Ajusta para o fuso horário local
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().slice(0, 16);
 };
 
 const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
+  // --- 1. ADICIONADO: serviceId no estado inicial ---
   const [formData, setFormData] = useState({
     patientId: '',
     doctorId: '',
-    date: formatDateTimeForInput(eventInfo?.start), // Usa a data clicada
+    serviceId: '', // Novo campo
+    date: formatDateTimeForInput(eventInfo?.start),
     status: 'Aguardando',
   });
+
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [services, setServices] = useState([]); // --- 2. ADICIONADO: Estado para lista de serviços ---
   const [error, setError] = useState('');
 
-  // Busca a lista de pacientes e médicos quando o modal abre
+  // Busca a lista de pacientes, médicos e SERVIÇOS
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,26 +34,31 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
         if (!token) throw new Error('Usuário não autenticado.');
         const headers = { 'Authorization': `Bearer ${token}` };
         
-        const [patientsRes, doctorsRes] = await Promise.all([
+        // --- 3. ADICIONADO: Busca serviços na API ---
+        const [patientsRes, doctorsRes, servicesRes] = await Promise.all([
           fetch('http://localhost:3001/api/patients', { headers }),
           fetch('http://localhost:3001/api/doctors', { headers }),
+          fetch('http://localhost:3001/api/services', { headers }), // Nova chamada
         ]);
 
-        if (!patientsRes.ok || !doctorsRes.ok) {
+        if (!patientsRes.ok || !doctorsRes.ok || !servicesRes.ok) {
           throw new Error('Falha ao carregar dados do formulário.');
         }
 
         const patientsData = await patientsRes.json();
         const doctorsData = await doctorsRes.json();
+        const servicesData = await servicesRes.json(); // Dados dos serviços
         
         setPatients(patientsData);
         setDoctors(doctorsData);
+        setServices(servicesData); // Salva no estado
 
         // Se estiver editando, preenche o formulário
         if (eventInfo && !eventInfo.isNew) {
           setFormData({
-            patientId: eventInfo.patientId || (await findPatientId(eventInfo.title)),
+            patientId: eventInfo.patientId || '', 
             doctorId: eventInfo.resourceId,
+            serviceId: eventInfo.serviceId || '', // Preenche se existir
             date: formatDateTimeForInput(eventInfo.start),
             status: eventInfo.status || 'Aguardando',
           });
@@ -59,12 +68,6 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
       }
     };
     
-    // Função auxiliar para encontrar o ID do paciente pelo nome (caso não tenhamos o ID)
-    const findPatientId = async (title) => {
-        // ... (esta lógica pode ser melhorada no futuro)
-        return ''; 
-    };
-
     fetchData();
   }, [eventInfo]);
 
@@ -73,12 +76,11 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- Função de Salvar (Criar/Editar) ---
+  // --- Função de Salvar ---
   const handleSave = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validação
     if (!formData.patientId || !formData.doctorId || !formData.date) {
       setError('Paciente, Médico e Data/Hora são obrigatórios.');
       return;
@@ -89,7 +91,9 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
       const body = {
         patientId: parseInt(formData.patientId),
         doctorId: parseInt(formData.doctorId),
-        date: new Date(formData.date).toISOString(), // Converte para o formato ISO
+        // --- 4. ADICIONADO: Envia o serviceId (ou null se vazio) ---
+        serviceId: formData.serviceId ? parseInt(formData.serviceId) : null,
+        date: new Date(formData.date).toISOString(),
         status: formData.status,
       };
 
@@ -107,8 +111,8 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
         throw new Error(data.error || 'Falha ao salvar agendamento.');
       }
 
-      onSaveSuccess(); // Atualiza a agenda na tela principal
-      onClose(); // Fecha o modal
+      onSaveSuccess();
+      onClose();
 
     } catch (err) {
       setError(err.message);
@@ -180,6 +184,25 @@ const AppointmentModal = ({ eventInfo, onClose, onSaveSuccess }) => {
               ))}
             </select>
           </div>
+
+          {/* --- 5. ADICIONADO: Campo de Serviço --- */}
+          <div className={styles.formGroup}>
+            <label htmlFor="serviceId">Serviço / Procedimento</label>
+            <select
+              id="serviceId"
+              name="serviceId"
+              value={formData.serviceId}
+              onChange={handleChange}
+            >
+              <option value="">Consulta (Padrão)</option>
+              {services.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.name} - {s.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </option>
+              ))}
+            </select>
+          </div>
+          {/* --------------------------------------- */}
 
           <div className={styles.formGroup}>
             <label htmlFor="date">Data e Hora *</label>

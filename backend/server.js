@@ -234,21 +234,29 @@ app.get('/api/doctors', authenticateToken, async (req, res) => {
 app.get('/api/appointments', authenticateToken, async (req, res) => {
   try {
     const appointments = await prisma.appointment.findMany({
-      include: { patient: { select: { name: true } }, doctor: { select: { name: true } } },
+      include: { patient: { select: { name: true } }, doctor: { select: { name: true } },service: { select: { name: true }} },
       orderBy: { date: 'asc' }
     });
-    const formatted = appointments.map(app => ({
-      id: app.id, title: `Consulta - ${app.patient.name} (${app.doctor.name})`, start: app.date,
-      end: new Date(new Date(app.date).getTime() + 30 * 60000), resourceId: app.doctorId, status: app.status
+    const formattedAppointments = appointments.map(app => ({
+      id: app.id, 
+      // Título formatado: "Consulta - Paciente (Médico) - [Serviço]"
+      title: `${app.service ? app.service.name : 'Consulta'} - ${app.patient.name} (${app.doctor.name})`, 
+      start: app.date,
+      end: new Date(new Date(app.date).getTime() + 30 * 60000), 
+      resourceId: app.doctorId, 
+      status: app.status,
+      serviceId: app.serviceId // <-- Envia o ID para o frontend saber qual é
     }));
-    res.status(200).json(formatted);
+    res.status(200).json(formattedAppointments);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar agendamentos.' });
   }
 });
 
 app.post('/api/appointments', authenticateToken, async (req, res) => {
-  const { patientId, doctorId, date, status } = req.body;
+  // Recebemos 'serviceId' do corpo
+  const { patientId, doctorId, date, status, serviceId } = req.body;
+  
   if (!patientId || !doctorId || !date) return res.status(400).json({ error: 'Dados incompletos.' });
 
   const appointmentDate = new Date(date);
@@ -258,14 +266,19 @@ app.post('/api/appointments', authenticateToken, async (req, res) => {
 
   try {
     const newApp = await prisma.appointment.create({
-      data: { patientId: parseInt(patientId), doctorId: parseInt(doctorId), date: new Date(date), status: status || 'Aguardando' },
+      data: { 
+        patientId: parseInt(patientId), 
+        doctorId: parseInt(doctorId), 
+        date: new Date(date), 
+        status: status || 'Aguardando',
+        // Salva o serviço se ele foi enviado
+        serviceId: serviceId ? parseInt(serviceId) : null 
+      },
       include: { patient: { select: { name: true } }, doctor: { select: { name: true } } }
     });
-    const formatted = {
-        id: newApp.id, title: `Consulta - ${newApp.patient.name} (${newApp.doctor.name})`, start: newApp.date,
-        end: new Date(new Date(newApp.date).getTime() + 30 * 60000), resourceId: newApp.doctorId, status: newApp.status
-    };
-    res.status(201).json(formatted);
+    
+    // Resposta simplificada (o frontend vai recarregar a lista de qualquer forma)
+    res.status(201).json(newApp);
   } catch (error) {
     console.error("Erro criar agendamento:", error);
     res.status(500).json({ error: 'Erro interno.' });
