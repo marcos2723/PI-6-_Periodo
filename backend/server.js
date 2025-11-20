@@ -2,6 +2,7 @@
 require('dotenv').config();
 const archiver = require('archiver');
 const AdmZip = require('adm-zip');
+const cron = require('node-cron'); // Necessário para o backup automático
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
@@ -28,7 +29,7 @@ const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173"], // Frontend (React ou Vite)
+    origin: ["http://localhost:3000", "http://localhost:5173"], // Frontend
     methods: ["GET", "POST"]
   }
 });
@@ -370,7 +371,8 @@ app.get('/api/convenios', authenticateToken, async (req, res) => {
 app.get('/api/transactions', authenticateToken, async (req, res) => {
   const { type, status } = req.query;
   try {
-    const where = {};if(type) where.type = type; if(status) where.status = status;
+    // CORREÇÃO FEITA AQUI: if minusculo
+    const where = {}; if(type) where.type = type; if(status) where.status = status;
     res.json(await prisma.transaction.findMany({ where, orderBy: { date: 'desc' }, include: { patient: {select:{name:true}}, service: {select:{name:true}} } }));
   } catch(e) { res.status(500).json({error:'Erro'}); }
 });
@@ -533,8 +535,10 @@ app.post('/api/backup/restore', authenticateToken, upload.single('backupFile'), 
 
 
 // =================================================================
-//             TAREFA AUTOMÁTICA (JOB)
+//             TAREFAS AUTOMÁTICAS (JOBS)
 // =================================================================
+
+// Job 1: Limpar Consultas Vencidas
 const checkExpiredAppointments = async () => {
   try {
     await prisma.appointment.updateMany({ where: { date: { lt: new Date() }, status: 'Aguardando' }, data: { status: 'Finalizado' } });
@@ -542,6 +546,74 @@ const checkExpiredAppointments = async () => {
 };
 setInterval(checkExpiredAppointments, 60000);
 checkExpiredAppointments();
+
+// =================================================================
+//             TAREFA AUTOMÁTICA 2: BACKUP
+// =================================================================
+// Função separada para podermos chamar quando quisermos
+const runBackupNow = async () => {
+  console.log('⚡ [Backup] Iniciando processo de backup...');
+  
+  try {
+    // 1. Pastas
+    const backupDir = path.join(__dirname, 'backups');
+    if (!fs.existsSync(backupDir)) {
+        console.log('Criando pasta backups...');
+        fs.mkdirSync(backupDir);
+    }
+    const uploadDir = path.join(__dirname, 'uploads');
+
+    // 2. Nome e Arquivo
+    const fileName = `backup-teste-${Date.now()}.zip`; // Nome simples pra teste
+    const filePath = path.join(backupDir, fileName);
+    const output = fs.createWriteStream(filePath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    // 3. Eventos
+    output.on('close', () => console.log(`✅ [Backup] Sucesso! Arquivo criado: ${fileName}`));
+    archive.on('error', (err) => console.error('❌ [Backup] Erro no ZIP:', err));
+
+    archive.pipe(output);
+
+    // 4. Conteúdo
+    if (fs.existsSync(uploadDir)) {
+        archive.directory(uploadDir, 'uploads');
+    } else {
+        console.log('⚠️ Pasta uploads não existe, backup será apenas do banco.');
+    }
+    
+    // Dados falsos se o banco estiver vazio, só pra testar o arquivo
+    const dbData = {
+      data: new Date(),
+      mensagem: "Teste de backup funcionando"
+    };
+    
+    // Tenta pegar dados reais, se der erro, usa o básico
+    try {
+       dbData.users = await prisma.user.findMany();
+       dbData.settings = await prisma.clinicSettings.findFirst();
+    } catch (err) {
+       console.log('⚠️ Aviso: Não conseguiu ler o banco de dados, salvando JSON simples.');
+    }
+
+    archive.append(JSON.stringify(dbData, null, 2), { name: 'database.json' });
+    await archive.finalize();
+
+  } catch (error) { 
+    console.error("❌ [Backup] Falha crítica:", error); 
+  }
+};
+
+// 1. AGENDAMENTO (Meio dia)
+cron.schedule('0 12 * * *', () => {
+  console.log('⏰ Cron disparou!');
+  runBackupNow();
+});
+
+// 2. EXECUÇÃO IMEDIATA (Roda assim que você der npm start)
+// Isso garante que vamos ver se funciona AGORA
+runBackupNow();
+
 
 // =================================================================
 //                      INICIALIZAÇÃO

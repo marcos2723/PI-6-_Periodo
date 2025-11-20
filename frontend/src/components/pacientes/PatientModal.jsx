@@ -182,6 +182,7 @@ const PatientModal = ({ isOpen, onClose, onSave, patientData }) => {
                 <option value="Feminino">Feminino</option>
                 <option value="Outro">Outro</option>
                 <option value="NaoInformar">Não informar</option>
+                <option value="Viado">Viado</option>
               </select>
             </div>
             <div className={styles.formGroup}>
