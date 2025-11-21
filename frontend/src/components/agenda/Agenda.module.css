@@ -1,175 +1,190 @@
-/* frontend/src/components/Agenda.module.css */
+/* Layout Grid Principal */
+.layoutContainer {
+  display: grid;
+  grid-template-columns: 300px 1fr; /* Sidebar fixa 300px, resto fluido */
+  height: 100%;
+  background-color: #f4f6f9;
+}
 
-/* --- Cabeçalho e Filtros --- */
-.agendaHeader {
+/* --- SIDEBAR (ESQUERDA) --- */
+.agendaSidebar {
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.newApptButton {
+  background-color: #830021; /* Cor da marca */
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+  box-shadow: 0 4px 6px rgba(131, 0, 33, 0.2);
+}
+
+.newApptButton:hover {
+  background-color: #64000f;
+}
+
+.label {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selectInput {
+  padding: 0.6rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #495057;
+}
+
+/* Customização do Mini Calendário (react-calendar) */
+.miniCalendarWrapper {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.reactCalendar {
+  width: 100% !important;
+  border: none !important;
+  background: white !important;
+  font-family: inherit;
+}
+
+/* Cor do dia selecionado no mini calendário */
+:global(.react-calendar__tile--active) {
+  background: #830021 !important;
+  color: white !important;
+}
+:global(.react-calendar__tile--now) {
+  background: #fff3cd !important;
+  color: #856404 !important;
+}
+
+/* Legenda */
+.legend h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.3rem;
+}
+.legendItem span {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: block;
+}
+
+/* --- ÁREA PRINCIPAL (DIREITA) --- */
+.agendaMain {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.calendarToolbarCustom {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.filterContainer {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.filterContainer label {
-  font-weight: 600;
-  color: #495057;
-  font-size: 0.95rem;
-}
-
-.doctorSelect {
-  padding: 0.6rem 1rem;
-  border: 1px solid #ced4da;
+  margin-bottom: 1rem;
+  background: white;
+  padding: 1rem;
   border-radius: 8px;
-  font-size: 0.95rem;
-  background-color: #fff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.ctaButton {
-  background-color: #830021;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-  box-shadow: 0 2px 4px rgba(131, 0, 33, 0.2);
-}
-
-.ctaButton:hover {
-  background-color: #64000f;
-  transform: translateY(-2px);
-}
-
-/* --- Container do Calendário --- */
-.calendarContainer {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-}
-
-/* ---
-   CUSTOMIZAÇÃO DO TEMA DO REACT-BIG-CALENDAR (Design Moderno)
---- */
-
-/* 1. Estilos dos Slots (Horários) */
-.pastSlot {
-  background-color: #f8f9fa !important;
-  cursor: not-allowed;
-}
-.pastSlot:hover {
-  background-color: #f1f3f5 !important;
-}
-
-.bookedSlot {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    #fff,
-    #fff 10px,
-    #fdf0f2 10px,
-    #fdf0f2 20px
-  ) !important;
-  cursor: not-allowed;
-  color: #f1f3f5 !important;
-}
-
-/* 2. Estilos dos Eventos (Agendamentos) */
-.customEvent {
-  background-color: #830021 !important;
-  border: 1px solid #64000f !important;
-  border-radius: 6px !important;
-  padding: 4px 8px !important;
-  font-weight: 500 !important;
-  color: #fff !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.customEvent:hover,
-.customEvent:focus {
-  background-color: #64000f !important;
-}
-.customEventContent strong {
-  font-weight: 600;
-  display: block;
-}
-.customEventContent .eventDoctor {
-  font-size: 0.9em;
-  opacity: 0.8;
-}
-
-/* 3. Estilos da Toolbar (Botões "Hoje", "Mês", "Semana") */
-.rbc-toolbar {
-  margin-bottom: 1.5rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.rbc-toolbar button {
-  background-color: #fff !important;
-  color: #495057 !important;
-  border: 1px solid #dee2e6 !important;
-  border-radius: 8px !important;
-  padding: 6px 14px !important;
-  font-weight: 600 !important;
-  transition: all 0.2s ease;
-  cursor: pointer !important;
-}
-.rbc-toolbar button:hover,
-.rbc-toolbar button:focus {
-  background-color: #f8f9fa !important;
-  color: #212529 !important;
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(131, 0, 33, 0.1) !important;
-}
-
-.rbc-toolbar button.rbc-active,
-.rbc-toolbar button.rbc-active:hover {
-  background-color: #830021 !important;
-  color: white !important;
-  border-color: #64000f !important;
-  box-shadow: 0 2px 4px rgba(131, 0, 33, 0.2) !important;
-}
-
-.rbc-toolbar .rbc-toolbar-label {
-  font-size: 1.75rem;
-  font-weight: 600;
+.calendarToolbarCustom h2 {
+  margin: 0;
+  text-transform: capitalize;
+  font-size: 1.4rem;
   color: #343a40;
 }
 
-/* 4. Estilos da Tabela */
-.rbc-day-slot .rbc-today,
-.rbc-month-view .rbc-today {
-  background-color: #fef8f9 !important;
+.viewToggle {
+  display: flex;
+  background: #f1f3f5;
+  padding: 4px;
+  border-radius: 6px;
 }
-.rbc-day-header {
-  padding: 0.75rem 0;
-  font-weight: 600;
+
+.viewToggle button {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
   color: #6c757d;
-  border-bottom: 1px solid #e9ecef;
+  font-weight: 600;
+  transition: all 0.2s;
 }
-.rbc-time-header {
-  border-bottom: 1px solid #e9ecef;
+
+.viewToggle button.activeView {
+  background: white;
+  color: #830021;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-.rbc-time-gutter, .rbc-time-header-gutter {
-  border-right: 1px solid #e9ecef;
+
+.bigCalendarWrapper {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  overflow-y: auto;
 }
-.rbc-day-slot .rbc-time-slot {
-  border-bottom: none;
+
+/* Estilo interno do card de evento */
+.eventInner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
 }
-.rbc-time-slot {
-  border-top: 1px solid #f1f3f5;
+.eventTitle {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.rbc-timeslot-group {
-  border-bottom: 1px solid #e9ecef;
-}
-.rbc-month-row {
-  border: 1px solid #e9ecef;
+.eventDoctor {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }

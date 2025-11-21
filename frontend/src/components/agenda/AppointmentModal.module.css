@@ -1,133 +1,150 @@
-/* frontend/src/components/AppointmentModal.module.css */
-
-.modalOverlay {
+.overlay {
   position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 2000;
   backdrop-filter: blur(2px);
-  padding: 1rem;
 }
 
-.modalContent {
-  background-color: #fff;
-  padding: 2rem 2.5rem;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 520px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-  animation: fadeIn 0.3s ease;
-}
-
-.modalContent h2 {
-  margin-top: 0;
-  margin-bottom: 2rem;
-  color: #830021;
-  font-size: 1.5rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.formGroup {
-  margin-bottom: 1.25rem;
-}
-
-.formGroup label {
-  display: block;
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.formGroup input,
-.formGroup textarea,
-.formGroup select {
-  width: 100%;
-  padding: 0.75rem;
+.modal {
+  background: #fff;
+  width: 90%;
+  max-width: 1100px; /* Bem largo igual a foto */
   border-radius: 8px;
-  border: 1px solid #ced4da;
-  font-size: 1rem;
-  background-color: #fdfdfd;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: dropIn 0.3s ease;
 }
 
-.formGroup input:focus,
-.formGroup textarea:focus,
-.formGroup select:focus {
+.header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h3 {
+  margin: 0;
+  color: #444;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.header button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.formContent {
+  padding: 25px;
+  background-color: #f9fafb; /* Fundo levemente cinza */
+}
+
+/* O segredo do layout: GRID */
+.gridRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 Colunas iguais */
+  gap: 15px;
+}
+
+.rowFull {
+  margin-bottom: 15px;
+}
+
+/* Estilo dos Inputs com Ícone */
+.inputWrapper {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  height: 45px; /* Altura fixa */
+  transition: border-color 0.2s;
+}
+
+.inputWrapper:focus-within {
   border-color: #830021;
-  outline: none;
   box-shadow: 0 0 0 3px rgba(131, 0, 33, 0.1);
 }
 
-.modalActions {
-  display: flex;
-  justify-content: space-between; /* Espalha os botões */
-  gap: 1rem;
-  margin-top: 2rem;
-  border-top: 1px solid #e9ecef;
-  padding-top: 1.5rem;
+.icon {
+  color: #888;
+  margin-right: 10px;
+  font-size: 1rem;
 }
 
-.modalActions button {
-  padding: 0.75rem 1.5rem;
+/* Reset nos inputs/selects para sumir a borda padrão */
+.inputWrapper input,
+.inputWrapper select {
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.95rem;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  font-size: 0.9rem;
+  color: #555;
+  background: transparent;
 }
 
-/* --- Estilos dos Botões --- */
-
-.cancelButton {
-  background-color: #f1f3f5;
-  color: #495057;
-}
-.cancelButton:hover {
-  background-color: #e9ecef;
-}
-
-.saveButton {
-  background-color: #830021;
-  color: white;
-  box-shadow: 0 2px 6px rgba(131, 0, 33, 0.3);
-}
-.saveButton:hover {
-  background-color: #64000f;
-}
-
-/* Botão de Deletar (Fica à esquerda) */
-.deleteButton {
-  background-color: transparent;
-  color: #dc3545;
-  font-weight: 600;
-  padding-left: 0;
-}
-.deleteButton:hover {
-  background-color: #f8d7da;
-}
-
-/* Mensagem de Erro */
 .error {
-    color: #dc3545;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    text-align: center;
+  color: #dc3545;
+  margin-top: 10px;
+  font-weight: 500;
 }
 
-/* Animação */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+.footer {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.btnCancel {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+}
+
+.btnSave {
+  padding: 10px 20px;
+  border: none;
+  background: #830021;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btnSave:hover {
+  background: #64000f;
+}
+
+@keyframes dropIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .gridRow {
+    grid-template-columns: 1fr 1fr; /* Vira 2 colunas no tablet */
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+}
+@media (max-width: 600px) {
+  .gridRow {
+    grid-template-columns: 1fr; /* Vira 1 coluna no celular */
   }
 }
