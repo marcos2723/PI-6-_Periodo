@@ -168,15 +168,15 @@
 
 .floatingFooter {
   position: fixed;
-  bottom: 0;
-  right: 0;
-  width: 100%;
-  background: white;
-  padding: 1rem 2rem;
-  border-top: 1px solid #e9ecef;
+  bottom: 40px; /* Afasta um pouco do fundo da tela */
+  right: 40px;  /* Afasta um pouco da direita */
+  width: auto;  /* Ocupa apenas o espaço do botão, não a tela toda */
+  background: transparent; /* Remove o fundo branco */
+  border: none; /* Remove a linha da borda */
+  padding: 0;
   display: flex;
   justify-content: flex-end;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+  box-shadow: none; /* Remove a sombra da barra (o botão já tem a dele) */
   z-index: 100;
 }
 
@@ -194,6 +194,7 @@
   gap: 0.5rem;
   box-shadow: 0 4px 15px rgba(131, 0, 33, 0.3);
   transition: transform 0.2s;
+  box-shadow: 0 4px 20px rgba(131, 0, 33, 0.4);
 }
 
 .saveButton:hover {
