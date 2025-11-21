@@ -74,3 +74,62 @@
   text-decoration: none;
   font-weight: 600;
 }
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo-img {
+  max-height: 80px;
+  object-fit: contain;
+}
+
+/* Estilo do Fallback (Caso sem logo) */
+.fallback-logo h1 {
+  color: #830021;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Botões de Seleção de Cargo (Cadastro) */
+.role-selection {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.role-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  background-color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6c757d;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.role-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #830021;
+}
+
+.role-btn.active {
+  background-color: #830021;
+  color: white;
+  border-color: #830021;
+  box-shadow: 0 4px 6px rgba(131, 0, 33, 0.2);
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #ffe6e6;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  text-align: left;
+}

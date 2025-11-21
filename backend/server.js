@@ -113,18 +113,42 @@ io.on('connection', (socket) => {
 // =================================================================
 //                      AUTENTICAÇÃO & PERFIL
 // =================================================================
+
+// --- ROTA DE REGISTRO CORRIGIDA ---
 app.post('/api/register', async (req, res) => {
   const { name, email, password, role, crm, phone } = req.body;
-  if (!name || !email || !password || !role) return res.status(400).json({ error: "Faltam dados." });
+  
+  if (!name || !email || !password || !role) {
+    return res.status(400).json({ error: "Faltam dados obrigatórios." });
+  }
+
+  // Validação extra de segurança para médicos
+  if (role === 'Médico' && !crm) {
+    return res.status(400).json({ error: "CRM é obrigatório para médicos." });
+  }
+
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) return res.status(409).json({ error: "Email em uso." });
+    
     const hashedPassword = await bcrypt.hash(password, 10);
+    
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, role, crm: role === 'Médico' ? crm : null, phone },
+      data: { 
+        name, 
+        email, 
+        password: hashedPassword, 
+        role, 
+        crm: role === 'Médico' ? crm : null, 
+        phone 
+      },
     });
+
     res.status(201).json({ message: 'Criado', userId: user.id });
-  } catch (error) { res.status(500).json({ error: 'Erro interno.' }); }
+  } catch (error) { 
+    console.error(error);
+    res.status(500).json({ error: 'Erro interno no servidor.' }); 
+  }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -329,8 +353,6 @@ app.put('/api/patients/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// -----------------------------------------------------------
-
 app.delete('/api/patients/:id', authenticateToken, async (req, res) => {
   const id = parseInt(req.params.id);
   try {
@@ -409,7 +431,6 @@ app.delete('/api/convenios/:id', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ error: 'Erro ao excluir.' }); }
 });
 
-// NOVA ROTA: Buscar pacientes de um convênio específico
 app.get('/api/convenios/:id/patients', authenticateToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -423,7 +444,6 @@ app.get('/api/convenios/:id/patients', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar pacientes do convênio.' });
   }
 });
-// --- FIM CONVÊNIOS ---
 
 app.get('/api/transactions', authenticateToken, async (req, res) => {
   const { type, status } = req.query;

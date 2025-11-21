@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import '../Auth.css'; // Ajustado para mesma pasta (./)
+import logoImg from '../../assets/images/logo_cardio1.png'; // CAMINHO CORRIGIDO
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [imageError, setImageError] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,19 +22,9 @@ const LoginPage = ({ onLogin }) => {
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Falha no login.');
-      }
+      if (!response.ok) throw new Error(data.error || 'Falha no login.');
 
-      // --- MUDANÇA PRINCIPAL ---
-      // Salva o token
       localStorage.setItem('token', data.token);
-      
-      // Se o backend mandar dados do usuário (como id), salvamos para usar a foto
-      // O token JWT já tem o ID, mas vamos garantir que o Header saiba buscar
-      // Se você já salvou uma foto no ProfilePage, ela está salva com a chave `profileImage_${userId}`
-      // O Header vai precisar saber o ID do usuário para buscar essa chave.
-      
       onLogin(); 
       navigate('/'); 
 
@@ -40,53 +33,63 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
-  // ... (o resto do JSX do formulário continua igual)
   return (
-    <div className="flex justify-center items-center min-h-screen bg-[#4c0013] p-4 font-sans">
-      <div className="p-8 sm:p-10 bg-white rounded-2xl shadow-2xl w-full max-w-md text-center">
-        <h2 className="text-3xl font-bold mb-8 text-gray-800">Login</h2>
+    <div className="auth-container">
+      <div className="auth-card">
         
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="mb-5 text-left">
-            <label htmlFor="email" className="block mb-2 font-medium text-gray-600">Email</label>
+        {/* LOGO */}
+        <div className="logo-container">
+            {!imageError ? (
+              <img 
+                src={logoImg} // Usando a variável importada
+                alt="CardioSystem" 
+                className="logo-img"
+                onError={() => setImageError(true)} 
+              />
+            ) : (
+              <div className="fallback-logo">
+                <h1>CardioSystem</h1>
+              </div>
+            )}
+        </div>
+
+        <h2>Login</h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label htmlFor="email">Email</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#830021] focus:border-transparent transition"
+              placeholder="seu@email.com"
             />
           </div>
           
-          <div className="mb-6 text-left">
-            <label htmlFor="password" className="block mb-2 font-medium text-gray-600">Senha</label>
+          <div className="input-group">
+            <label htmlFor="password">Senha</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#830021] focus:border-transparent transition"
+              placeholder="••••••"
             />
           </div>
 
-          {error && <p className="text-red-600 mb-4 font-semibold">{error}</p>}
+          {error && <div className="error-message">{error}</div>}
           
-          <button
-            type="submit"
-            className="w-full py-3 border-none rounded-lg bg-[#830021] text-white text-lg font-semibold cursor-pointer transition-colors hover:bg-[#64000f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#830021]"
-          >
+          <button type="submit" className="auth-button">
             Entrar
           </button>
         </form>
 
-        <p className="mt-8 text-gray-600">
-          Não tem uma conta?{' '}
-          <Link to="/cadastro" className="text-[#830021] font-semibold hover:underline">
-            Cadastre-se
-          </Link>
-        </p>
+        <div className="auth-switch">
+          Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link>
+        </div>
       </div>
     </div>
   );
