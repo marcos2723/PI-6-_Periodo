@@ -2,7 +2,7 @@
 require('dotenv').config();
 const archiver = require('archiver');
 const AdmZip = require('adm-zip');
-const cron = require('node-cron'); // Necessário para o backup automático
+const cron = require('node-cron');
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
@@ -15,7 +15,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// --- IMPORTANTE: Importar o Middleware AQUI em cima ---
+// --- MIDDLEWARE AUTH ---
 const { authenticateToken } = require('./middleware/auth.js'); 
 
 // --- IMPORTAÇÃO DAS ROTAS DE ESTOQUE ---
@@ -29,7 +29,7 @@ const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173"], // Frontend
+    origin: ["http://localhost:3000", "http://localhost:5173"], 
     methods: ["GET", "POST"]
   }
 });
@@ -37,25 +37,21 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// --- 2.1 CONFIGURAÇÃO DO UPLOAD (MULTER) ---
+// --- 2.1 CONFIGURAÇÃO DO UPLOAD ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = 'uploads/';
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
-    }
+    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath);
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     cb(null, `${req.params.id || 'temp'}-${Date.now()}-${file.originalname}`);
   }
 });
-
 const upload = multer({ storage: storage });
 app.use('/uploads', express.static('uploads'));
 
-
-// --- FUNÇÃO AUXILIAR PARA LOGS ---
+// --- FUNÇÃO AUXILIAR LOGS ---
 const createLog = async (userId, action, details) => {
   try {
     if (!userId) return;
@@ -74,7 +70,6 @@ app.get('/api/logs', authenticateToken, async (req, res) => {
   } catch (error) { res.status(500).json({ error: 'Erro ao buscar logs.' }); }
 });
 
-
 // =================================================================
 //                      MÓDULO CHAT (SOCKET.IO)
 // =================================================================
@@ -86,7 +81,6 @@ io.on('connection', (socket) => {
     if (!token) throw new Error("Token ausente");
     userPayload = jwt.verify(token, process.env.JWT_SECRET);
     userSocketMap[userPayload.userId] = socket.id;
-    console.log(`[Socket.io] Usuário conectado: ${userPayload.name}`);
   } catch (err) { socket.disconnect(true); return; }
 
   socket.on('get:message:history', async ({ otherUserId }) => {
@@ -115,7 +109,6 @@ io.on('connection', (socket) => {
     if (userPayload) delete userSocketMap[userPayload.userId];
   });
 });
-
 
 // =================================================================
 //                      AUTENTICAÇÃO & PERFIL
@@ -188,7 +181,6 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Erro update perfil.' }); }
 });
 
-
 // =================================================================
 //                      DASHBOARD & ROTAS BÁSICAS
 // =================================================================
@@ -253,7 +245,6 @@ app.delete('/api/appointments/:id', authenticateToken, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Erro deletar.' }); }
 });
 
-// PACIENTES
 app.get('/api/patients', authenticateToken, async (req, res) => {
   const { search } = req.query;
   try {
@@ -294,29 +285,51 @@ app.delete('/api/attachments/:id', authenticateToken, async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Erro delete anexo.' }); }
 });
 
+// --- ROTAS DE PACIENTES COM TRATAMENTO DE ERRO MELHORADO ---
+
 app.post('/api/patients', authenticateToken, async (req, res) => {
-  const { name, email, phone, cpf, birthDate, gender, address, convenioId } = req.body;
+  const { name, email, phone, cpf, birthDate, gender, address, convenioId, convenioNumber, convenioValidity } = req.body;
   try {
     const p = await prisma.patient.create({
-      data: { name, email, phone, cpf, gender, address, birthDate: birthDate?new Date(birthDate):null, convenioId: convenioId?parseInt(convenioId):null }
+      data: { name, email, phone, cpf, gender, address, birthDate: birthDate?new Date(birthDate):null, convenioId: convenioId?parseInt(convenioId):null, convenioNumber: convenioNumber || null,
+      convenioValidity: convenioValidity ? new Date(convenioValidity) : null }
     });
     await createLog(req.user.userId, 'Novo Paciente', p.name);
     res.status(201).json(p);
-  } catch (e) { res.status(500).json({ error: e.code === 'P2002' ? 'Duplicado' : 'Erro' }); }
+  } catch (e) { 
+    console.error("Erro detalhado:", e);
+    // TRATAMENTO DE ERRO P2002 (DUPLICIDADE)
+    if (e.code === 'P2002') {
+      const campo = e.meta?.target ? e.meta.target.join(', ') : 'Email ou CPF';
+      return res.status(409).json({ error: `Já existe um paciente com este ${campo}.` });
+    }
+    res.status(500).json({ error: 'Erro ao criar paciente.' }); 
+  }
 });
 
 app.put('/api/patients/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { name, email, phone, cpf, birthDate, gender, address, convenioId } = req.body;
+  const { name, email, phone, cpf, birthDate, gender, address, convenioId, convenioNumber, convenioValidity } = req.body;
   try {
     const p = await prisma.patient.update({
       where: { id: parseInt(id) },
-      data: { name, email, phone, cpf, gender, address, birthDate: birthDate?new Date(birthDate):null, convenioId: convenioId?parseInt(convenioId):null }
+      data: { name, email, phone, cpf, gender, address, birthDate: birthDate?new Date(birthDate):null, convenioId: convenioId?parseInt(convenioId):null, convenioNumber: convenioNumber || null,
+      convenioValidity: convenioValidity ? new Date(convenioValidity) : null
+     }
     });
     await createLog(req.user.userId, 'Editou Paciente', p.name);
     res.status(200).json(p);
-  } catch (e) { res.status(500).json({ error: 'Erro update.' }); }
+  } catch (e) { 
+    console.error("Erro detalhado:", e);
+    if (e.code === 'P2002') {
+        const campo = e.meta?.target ? e.meta.target.join(', ') : 'Email ou CPF';
+        return res.status(409).json({ error: `Já existe outro paciente com este ${campo}.` });
+      }
+    res.status(500).json({ error: 'Erro update.' }); 
+  }
 });
+
+// -----------------------------------------------------------
 
 app.delete('/api/patients/:id', authenticateToken, async (req, res) => {
   const id = parseInt(req.params.id);
@@ -364,14 +377,57 @@ app.post('/api/services', authenticateToken, async (req, res) => {
   } catch(e) { res.status(500).json({error:'Erro'}); }
 });
 
+// --- CONVÊNIOS (NOVO CRUD COMPLETO) ---
 app.get('/api/convenios', authenticateToken, async (req, res) => {
-  try { res.json(await prisma.convenio.findMany({ orderBy: { name: 'asc' } })); } catch(e) { res.status(500).json({error:'Erro'}); }
+  try {
+    const convenios = await prisma.convenio.findMany({ orderBy: { name: 'asc' }, include: { _count: { select: { patients: true } } } });
+    res.status(200).json(convenios);
+  } catch (error) { res.status(500).json({ error: 'Erro ao buscar convênios.' }); }
 });
+
+app.post('/api/convenios', authenticateToken, async (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: 'Nome obrigatório.' });
+  try {
+    const existing = await prisma.convenio.findFirst({ where: { name: { equals: name, mode: 'insensitive' } } });
+    if (existing) return res.status(409).json({ error: `Convênio "${existing.name}" já existe.` });
+    const newC = await prisma.convenio.create({ data: { name } });
+    await createLog(req.user.userId, 'Novo Convênio', name);
+    res.status(201).json(newC);
+  } catch (error) { res.status(500).json({ error: 'Erro ao criar.' }); }
+});
+
+app.delete('/api/convenios/:id', authenticateToken, async (req, res) => {
+  const id = parseInt(req.params.id);
+  try {
+    const patCount = await prisma.patient.count({ where: { convenioId: id } });
+    const transCount = await prisma.transaction.count({ where: { convenioId: id } });
+    if (patCount > 0 || transCount > 0) return res.status(409).json({ error: 'Convênio em uso por pacientes ou financeiro.' });
+    await prisma.convenio.delete({ where: { id } });
+    await createLog(req.user.userId, 'Excluiu Convênio', `ID: ${id}`);
+    res.status(204).send();
+  } catch (error) { res.status(500).json({ error: 'Erro ao excluir.' }); }
+});
+
+// NOVA ROTA: Buscar pacientes de um convênio específico
+app.get('/api/convenios/:id/patients', authenticateToken, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const patients = await prisma.patient.findMany({
+      where: { convenioId: id },
+      select: { id: true, name: true, cpf: true, phone: true, email: true },
+      orderBy: { name: 'asc' }
+    });
+    res.status(200).json(patients);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar pacientes do convênio.' });
+  }
+});
+// --- FIM CONVÊNIOS ---
 
 app.get('/api/transactions', authenticateToken, async (req, res) => {
   const { type, status } = req.query;
   try {
-    // CORREÇÃO FEITA AQUI: if minusculo
     const where = {}; if(type) where.type = type; if(status) where.status = status;
     res.json(await prisma.transaction.findMany({ where, orderBy: { date: 'desc' }, include: { patient: {select:{name:true}}, service: {select:{name:true}} } }));
   } catch(e) { res.status(500).json({error:'Erro'}); }
@@ -435,7 +491,7 @@ app.use('/api', stockRoutes);
 //                      BACKUP & RESTAURAÇÃO (ZIP)
 // =================================================================
 
-// 1. FAZER BACKUP (DOWNLOAD ZIP)
+// 1. FAZER BACKUP (DOWNLOAD ZIP - MANUAL)
 app.get('/api/backup/download', authenticateToken, async (req, res) => {
   try {
     const fileName = `backup-completo-${format(new Date(), 'dd-MM-yyyy-HHmm')}.zip`;
@@ -547,73 +603,64 @@ const checkExpiredAppointments = async () => {
 setInterval(checkExpiredAppointments, 60000);
 checkExpiredAppointments();
 
-// =================================================================
-//             TAREFA AUTOMÁTICA 2: BACKUP
-// =================================================================
-// Função separada para podermos chamar quando quisermos
+// Job 2: Backup Automático Diário (PRODUÇÃO)
 const runBackupNow = async () => {
-  console.log('⚡ [Backup] Iniciando processo de backup...');
-  
+  console.log('⚡ [AutoBackup] Iniciando backup diário...');
   try {
-    // 1. Pastas
     const backupDir = path.join(__dirname, 'backups');
-    if (!fs.existsSync(backupDir)) {
-        console.log('Criando pasta backups...');
-        fs.mkdirSync(backupDir);
-    }
+    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
     const uploadDir = path.join(__dirname, 'uploads');
 
-    // 2. Nome e Arquivo
-    const fileName = `backup-teste-${Date.now()}.zip`; // Nome simples pra teste
+    const fileName = `backup-auto-${format(new Date(), 'dd-MM-yyyy-HHmm')}.zip`;
     const filePath = path.join(backupDir, fileName);
     const output = fs.createWriteStream(filePath);
     const archive = archiver('zip', { zlib: { level: 9 } });
 
-    // 3. Eventos
-    output.on('close', () => console.log(`✅ [Backup] Sucesso! Arquivo criado: ${fileName}`));
-    archive.on('error', (err) => console.error('❌ [Backup] Erro no ZIP:', err));
-
+    output.on('close', () => console.log(`✅ [AutoBackup] Salvo: ${fileName}`));
+    archive.on('error', (err) => console.error('❌ [AutoBackup] Erro:', err));
     archive.pipe(output);
 
-    // 4. Conteúdo
-    if (fs.existsSync(uploadDir)) {
-        archive.directory(uploadDir, 'uploads');
-    } else {
-        console.log('⚠️ Pasta uploads não existe, backup será apenas do banco.');
-    }
+    if (fs.existsSync(uploadDir)) archive.directory(uploadDir, 'uploads');
     
-    // Dados falsos se o banco estiver vazio, só pra testar o arquivo
     const dbData = {
-      data: new Date(),
-      mensagem: "Teste de backup funcionando"
+      metadata: { timestamp: new Date(), type: 'AUTO_BACKUP' },
+      settings: await prisma.clinicSettings.findFirst(),
+      users: await prisma.user.findMany(),
+      services: await prisma.service.findMany(),
+      products: await prisma.product.findMany(),
+      convenios: await prisma.convenio.findMany(),
+      patients: await prisma.patient.findMany(),
+      stockLots: await prisma.stockLot.findMany(),
+      appointments: await prisma.appointment.findMany(),
+      attachments: await prisma.attachment.findMany(),
+      transactions: await prisma.transaction.findMany(),
+      budgets: await prisma.budget.findMany(),
+      budgetLines: await prisma.budgetLine.findMany(),
+      stockMovements: await prisma.stockMovement.findMany(),
     };
-    
-    // Tenta pegar dados reais, se der erro, usa o básico
-    try {
-       dbData.users = await prisma.user.findMany();
-       dbData.settings = await prisma.clinicSettings.findFirst();
-    } catch (err) {
-       console.log('⚠️ Aviso: Não conseguiu ler o banco de dados, salvando JSON simples.');
-    }
-
     archive.append(JSON.stringify(dbData, null, 2), { name: 'database.json' });
     await archive.finalize();
 
-  } catch (error) { 
-    console.error("❌ [Backup] Falha crítica:", error); 
-  }
+    // Limpeza de Backups Antigos (> 7 arquivos)
+    const files = fs.readdirSync(backupDir);
+    const sortedFiles = files.map(file => ({
+      name: file,
+      time: fs.statSync(path.join(backupDir, file)).mtime.getTime()
+    })).sort((a, b) => b.time - a.time);
+
+    if (sortedFiles.length > 7) {
+      for (let i = 7; i < sortedFiles.length; i++) {
+        fs.unlinkSync(path.join(backupDir, sortedFiles[i].name));
+      }
+    }
+
+  } catch (error) { console.error("❌ [AutoBackup] Falha crítica:", error); }
 };
 
-// 1. AGENDAMENTO (Meio dia)
-cron.schedule('0 12 * * *', () => {
-  console.log('⏰ Cron disparou!');
+// AGENDAMENTO: MEIA NOITE (00:00) TODO DIA
+cron.schedule('0 0 * * *', () => {
   runBackupNow();
 });
-
-// 2. EXECUÇÃO IMEDIATA (Roda assim que você der npm start)
-// Isso garante que vamos ver se funciona AGORA
-runBackupNow();
-
 
 // =================================================================
 //                      INICIALIZAÇÃO

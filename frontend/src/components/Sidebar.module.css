@@ -9,15 +9,23 @@
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  z-index: 1000; /* Garante que fique acima do conteúdo */
+  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
 }
 
 .sidebarHeader {
-  text-align: center;
-  padding: 1rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 1rem;
-  font-size: 1.5rem;
-  border-bottom: 1px solid #374151;
   flex-shrink: 0;
+}
+
+.logo {
+  max-width: 180px; /* Ajustado para caber melhor */
+  height: auto;
 }
 
 .navList {
@@ -26,16 +34,15 @@
   margin: 0;
   flex-grow: 1;
   overflow-y: auto;
-  /* NOVO: Para Firefox */
   scrollbar-width: thin;
-  scrollbar-color: #ffffff #4c0013;
+  scrollbar-color: #e5e7eb #4c0013;
 }
 
 .navHeading {
   padding: 1.5rem 1rem 0.5rem 1rem;
   font-size: 0.75rem;
-  font-weight: 600;
-  color: #8b94a3;
+  font-weight: 700;
+  color: #a8b3cf;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -48,8 +55,9 @@
   text-decoration: none;
   color: #d1d5db;
   border-radius: 8px;
-  margin-bottom: 0.5rem;
-  transition: background-color 0.2s, color 0.2s;
+  margin-bottom: 0.3rem; /* Espaçamento menor */
+  transition: all 0.2s ease-in-out;
+  border: 1px solid transparent; /* Evita pulo no hover */
 }
 
 .navLink[href], .activeLink[href] {
@@ -57,75 +65,65 @@
 }
 
 .navLink:hover {
-  background-color: #830021;
+  background-color: rgba(131, 0, 33, 0.6); /* Cor da marca com transparência */
   color: #ffffff;
+  transform: translateX(3px);
 }
 
 .activeLink {
-  background-color: #830021;
+  background-color: #830021; /* Cor sólida para ativo */
   color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
+/* --- SUBMENU (Animação de entrada) --- */
 .submenu {
   list-style: none;
-  padding-left: 2.5rem; 
-  margin-top: -0.5rem;
+  padding-left: 1rem;
+  margin-top: 0.2rem;
   margin-bottom: 0.5rem;
+  border-left: 2px solid rgba(255,255,255,0.1); /* Linha guia visual */
+  margin-left: 1.5rem;
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .subNavLink, .activeSubLink {
   display: block;
-  padding: 0.6rem 1rem;
+  padding: 0.7rem 1rem;
   text-decoration: none;
   color: #9ca3af;
   border-radius: 6px;
-  transition: background-color 0.2s, color 0.2s;
-  font-size: 0.9em;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
 }
 
 .subNavLink:hover {
-  background-color: #830021;
+  background-color: rgba(255,255,255,0.05);
   color: #ffffff;
+  padding-left: 1.2rem; /* Pequeno movimento à direita */
 }
 
 .activeSubLink {
+  background-color: rgba(131, 0, 33, 0.4);
   color: #ffffff;
   font-weight: 500;
 }
 
-/* NOVO: Estilização da Barra de Rolagem */
+/* Scrollbar personalizada */
 .navList::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
 }
-
 .navList::-webkit-scrollbar-track {
-  background: #111827;
-  border-radius: 10px;
+  background: #2d000b;
 }
-
 .navList::-webkit-scrollbar-thumb {
-  background-color: #4b5563;
+  background-color: #830021;
   border-radius: 10px;
-  border: 2px solid #111827;
-}
-
-.navList::-webkit-scrollbar-thumb:hover {
-  background-color: #6b7280;
-}
-
-.sidebarHeader {
-  display: flex;
-  justify-content: center; /* Centraliza a logo */
-  align-items: center;
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Separador sutil */
-  margin-bottom: 1.5rem; /* Espaço abaixo da logo */
-}
-
-.logo {
-  max-width: 230px; /* Ajuste o tamanho conforme preferir */
-  height: auto;
-  border-radius: 2px; /* Borda arredondada para um visual mais suave */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidade */
 }

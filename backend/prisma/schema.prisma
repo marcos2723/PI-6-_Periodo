@@ -35,6 +35,8 @@ model Patient {
   birthDate    DateTime?
   gender       String?
   address      String?
+  convenioNumber   String?
+  convenioValidity DateTime?
   convenioId   Int?
   convenio     Convenio?     @relation(fields: [convenioId], references: [id])
   appointments Appointment[]

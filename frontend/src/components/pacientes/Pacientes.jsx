@@ -14,6 +14,10 @@ const useDebounce = (value, delay) => {
 
 const Pacientes = () => {
   const [patients, setPatients] = useState([]);
+  
+  // --- NOVO STATE PARA CONVÊNIOS ---
+  const [convenios, setConvenios] = useState([]); 
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,37 +25,50 @@ const Pacientes = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 500); 
 
-  // --- ESTADOS DO HISTÓRICO ---
+  // Estados do Histórico
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [patientHistory, setPatientHistory] = useState([]);
   const [historyPatientName, setHistoryPatientName] = useState('');
   const [loadingHistory, setLoadingHistory] = useState(false);
   
-  // Controle de expansão e upload
   const [expandedAppointmentId, setExpandedAppointmentId] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // --- BUSCAR PACIENTES ---
-  const fetchPatients = useCallback(async () => {
-    setLoading(true); setError(null);
+  // --- BUSCAR DADOS INICIAIS (PACIENTES + CONVÊNIOS) ---
+  const fetchData = useCallback(async () => {
+    setLoading(true); 
+    setError(null);
     try {
       const token = localStorage.getItem('token');
+      
+      // 1. Busca Pacientes
       const url = new URL('http://localhost:3001/api/patients');
       if (debouncedSearchQuery) url.searchParams.append('search', debouncedSearchQuery);
+      const resPatients = await fetch(url.toString(), { headers: { 'Authorization': `Bearer ${token}` } });
+      if (!resPatients.ok) throw new Error('Falha ao buscar pacientes.');
+      const dataPatients = await resPatients.json();
+      setPatients(dataPatients);
 
-      const response = await fetch(url.toString(), { headers: { 'Authorization': `Bearer ${token}` } });
-      if (!response.ok) throw new Error('Falha ao buscar pacientes.');
-      const data = await response.json();
-      setPatients(data);
-    } catch (err) { setError(err.message); } finally { setLoading(false); }
+      // 2. Busca Convênios (Para passar pro modal)
+      const resConvenios = await fetch('http://localhost:3001/api/convenios', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (resConvenios.ok) {
+        const dataConvenios = await resConvenios.json();
+        setConvenios(dataConvenios);
+      }
+
+    } catch (err) { 
+      setError(err.message); 
+    } finally { 
+      setLoading(false); 
+    }
   }, [debouncedSearchQuery]); 
 
-  useEffect(() => { fetchPatients(); }, [fetchPatients]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleOpenModal = (patient = null) => { setSelectedPatient(patient); setIsModalOpen(true); };
   const handleCloseModal = () => { setIsModalOpen(false); setSelectedPatient(null); };
 
-  // --- ABRIR HISTÓRICO ---
+  // --- HISTÓRICO ---
   const handleOpenHistory = async (patient) => {
     setHistoryPatientName(patient.name);
     setHistoryModalOpen(true);
@@ -72,78 +89,65 @@ const Pacientes = () => {
     finally { setLoadingHistory(false); }
   };
 
-  // --- UPLOAD DE EXAMES ---
+  // --- UPLOAD ---
   const handleFileUpload = async (event, appointmentId) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
-    }
+    for (let i = 0; i < files.length; i++) { formData.append('files', files[i]); }
 
     setUploading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3001/api/appointments/${appointmentId}/upload`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
       });
 
       if (response.ok) {
-        // Atualiza lista
-        const resHistory = await fetch(`http://localhost:3001/api/patients/${patients.find(p => p.name === historyPatientName).id}/history`, {
-             headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const dataHistory = await resHistory.json();
-        setPatientHistory(dataHistory);
-        alert('Exames anexados com sucesso!');
-      } else {
-        alert('Erro ao enviar arquivo.');
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Erro ao enviar.');
-    } finally {
-      setUploading(false);
-    }
+        // Recarrega histórico
+        const patId = patients.find(p => p.name === historyPatientName)?.id;
+        if(patId) {
+           const resH = await fetch(`http://localhost:3001/api/patients/${patId}/history`, { headers: { 'Authorization': `Bearer ${token}` } });
+           if(resH.ok) setPatientHistory(await resH.json());
+        }
+        alert('Sucesso!');
+      } else alert('Erro upload.');
+    } catch (e) { console.error(e); alert('Erro.'); } 
+    finally { setUploading(false); }
   };
 
-  // --- DELETAR ANEXO (NOVA FUNÇÃO ADICIONADA) ---
   const handleDeleteAttachment = async (attachmentId) => {
-    if (!window.confirm("Tem certeza que deseja excluir este anexo?")) return;
-
+    if (!window.confirm("Excluir anexo?")) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3001/api/attachments/${attachmentId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        // Atualiza a lista na tela
-        const resHistory = await fetch(`http://localhost:3001/api/patients/${patients.find(p => p.name === historyPatientName).id}/history`, {
-             headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const dataHistory = await resHistory.json();
-        setPatientHistory(dataHistory);
-      } else {
-        alert('Erro ao excluir anexo.');
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Erro ao excluir.');
-    }
+      const res = await fetch(`http://localhost:3001/api/attachments/${attachmentId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) {
+         const patId = patients.find(p => p.name === historyPatientName)?.id;
+         if(patId) {
+             const resH = await fetch(`http://localhost:3001/api/patients/${patId}/history`, { headers: { 'Authorization': `Bearer ${token}` } });
+             if(resH.ok) setPatientHistory(await resH.json());
+         }
+      } else alert('Erro excluir.');
+    } catch (e) { console.error(e); }
   };
 
-  // --- CRUD PACIENTES ---
+  // --- SALVAR (CRIAR/EDITAR) PACIENTE ---
   const handleSavePatient = async (patientData) => {
     const token = localStorage.getItem('token');
     const isEditing = !!patientData.id; 
     const url = isEditing ? `http://localhost:3001/api/patients/${patientData.id}` : 'http://localhost:3001/api/patients';
     const method = isEditing ? 'PUT' : 'POST';
-    const dataToSend = { ...patientData, convenioId: patientData.convenioId === 'particular' ? null : parseInt(patientData.convenioId), birthDate: patientData.birthDate ? new Date(patientData.birthDate).toISOString() : null };
+    
+    // TRATAMENTO DE DADOS ANTES DE ENVIAR
+    const dataToSend = { 
+        ...patientData, 
+        // Se for 'particular' ou vazio, manda null pro banco
+        convenioId: (patientData.convenioId && patientData.convenioId !== 'particular') ? parseInt(patientData.convenioId) : null, 
+        // Formata data se existir
+        birthDate: patientData.birthDate ? new Date(patientData.birthDate).toISOString() : null,
+        convenioValidity: patientData.convenioValidity ? new Date(patientData.convenioValidity).toISOString() : null
+    };
 
     try {
       const response = await fetch(url, {
@@ -151,8 +155,12 @@ const Pacientes = () => {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(dataToSend), 
       });
-      if (!response.ok) throw new Error('Falha ao salvar.');
-      fetchPatients(); handleCloseModal(); 
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Falha ao salvar.');
+      }
+      fetchData(); // Recarrega lista
+      handleCloseModal(); 
     } catch (err) { alert(err.message); }
   };
 
@@ -161,8 +169,11 @@ const Pacientes = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3001/api/patients/${patientId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-      if (!response.ok) throw new Error('Falha ao excluir.');
-      fetchPatients(); 
+      if (!response.ok) {
+          const d = await response.json();
+          throw new Error(d.error || 'Falha ao excluir.');
+      }
+      fetchData(); 
     } catch (err) { alert(err.message); }
   };
 
@@ -190,7 +201,16 @@ const Pacientes = () => {
                   <td>{patient.name}</td>
                   <td>{patient.cpf || 'N/A'}</td>
                   <td>{patient.phone || 'N/A'}</td>
-                  <td>{patient.convenio ? patient.convenio.name : 'Particular'}</td>
+                  {/* Exibe o nome do convênio ou 'Particular' */}
+                  <td>
+                      <span style={{ 
+                          backgroundColor: patient.convenio ? '#e3f2fd' : '#f8f9fa', 
+                          color: patient.convenio ? '#0d6efd' : '#6c757d',
+                          padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: '500'
+                      }}>
+                        {patient.convenio ? patient.convenio.name : 'Particular'}
+                      </span>
+                  </td>
                   <td className={styles.actionsCell}>
                     <button className={styles.actionButton} onClick={() => handleOpenHistory(patient)} title="Histórico"><FaHistory /></button>
                     <button className={styles.actionButton} onClick={() => handleOpenModal(patient)}><FaEdit /></button>
@@ -203,9 +223,18 @@ const Pacientes = () => {
         </div>
       )}
 
-      {isModalOpen && <PatientModal isOpen={isModalOpen} onClose={handleCloseModal} onSave={handleSavePatient} patientData={selectedPatient} />}
+      {isModalOpen && (
+          <PatientModal 
+            isOpen={isModalOpen} 
+            onClose={handleCloseModal} 
+            onSave={handleSavePatient} 
+            patientData={selectedPatient}
+            // PASSANDO A LISTA DE CONVÊNIOS PARA O MODAL
+            conveniosList={convenios} 
+          />
+      )}
 
-      {/* --- MODAL DE HISTÓRICO --- */}
+      {/* MODAL HISTÓRICO MANTIDO IGUAL... */}
       {historyModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
             <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '700px', maxWidth: '95%', maxHeight: '85vh', overflowY: 'auto' }}>
@@ -218,7 +247,6 @@ const Pacientes = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {patientHistory.map((appointment) => (
                             <div key={appointment.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '15px', backgroundColor: '#f9f9f9' }}>
-                                {/* Cabeçalho do Card */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                     <div>
                                         <strong>{new Date(appointment.date).toLocaleDateString('pt-BR')}</strong> - {new Date(appointment.date).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}
@@ -235,7 +263,6 @@ const Pacientes = () => {
                                     </div>
                                 </div>
 
-                                {/* Botão para expandir área de exames */}
                                 <button 
                                     onClick={() => setExpandedAppointmentId(expandedAppointmentId === appointment.id ? null : appointment.id)}
                                     style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem' }}
@@ -243,48 +270,27 @@ const Pacientes = () => {
                                     <FaPaperclip /> {appointment.attachments && appointment.attachments.length > 0 ? `${appointment.attachments.length} Anexo(s)` : 'Anexar Exames'}
                                 </button>
 
-                                {/* Área Expansível de Arquivos */}
                                 {expandedAppointmentId === appointment.id && (
                                     <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '4px' }}>
-                                        
-                                        {/* Lista de Arquivos Já Enviados (ATUALIZADA COM BOTÃO EXCLUIR) */}
                                         {appointment.attachments && appointment.attachments.length > 0 && (
                                             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 10px 0' }}>
                                                 {appointment.attachments.map(file => (
                                                     <li key={file.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px', fontSize: '0.9rem', padding: '5px', borderBottom: '1px solid #eee' }}>
                                                         <FaFileDownload color="#555" />
-                                                        <a 
-                                                            href={`http://localhost:3001/uploads/${file.filePath}`} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer"
-                                                            style={{ color: '#333', textDecoration: 'none', flex: 1 }}
-                                                        >
+                                                        <a href={`http://localhost:3001/uploads/${file.filePath}`} target="_blank" rel="noopener noreferrer" style={{ color: '#333', textDecoration: 'none', flex: 1 }}>
                                                             {file.fileName}
                                                         </a>
-                                                        
-                                                        {/* BOTÃO DE EXCLUIR AQUI */}
-                                                        <button 
-                                                            onClick={() => handleDeleteAttachment(file.id)}
-                                                            title="Excluir anexo"
-                                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc3545', padding: '5px', marginLeft: 'auto' }}
-                                                        >
+                                                        <button onClick={() => handleDeleteAttachment(file.id)} title="Excluir" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc3545', padding: '5px', marginLeft: 'auto' }}>
                                                             <FaTrash size={14} />
                                                         </button>
                                                     </li>
                                                 ))}
                                             </ul>
                                         )}
-
-                                        {/* Input para Upload */}
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
                                             <label style={{ cursor: 'pointer', backgroundColor: '#e9ecef', padding: '5px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem' }}>
                                                 <FaCloudUploadAlt /> Selecionar Arquivos
-                                                <input 
-                                                    type="file" 
-                                                    multiple 
-                                                    style={{ display: 'none' }} 
-                                                    onChange={(e) => handleFileUpload(e, appointment.id)}
-                                                />
+                                                <input type="file" multiple style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, appointment.id)} />
                                             </label>
                                             {uploading && <span style={{fontSize: '0.8rem', color: '#666'}}>Enviando...</span>}
                                         </div>
@@ -294,7 +300,6 @@ const Pacientes = () => {
                         ))}
                     </div>
                 )}
-                
                 <div style={{ marginTop: '20px', textAlign: 'right' }}>
                     <button onClick={() => setHistoryModalOpen(false)} style={{ padding: '8px 16px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Fechar</button>
                 </div>

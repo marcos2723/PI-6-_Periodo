@@ -1,0 +1,235 @@
+.header {
+  margin-bottom: 2rem;
+}
+
+.header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #2c3e50;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.header p {
+  color: #6c757d;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+}
+
+/* Card do Formulário */
+.formCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2.5rem;
+  border: 1px solid #f1f3f5;
+}
+
+.formRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.inputGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inputGroup label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inputGroup input {
+  padding: 0.8rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f8f9fa;
+  transition: all 0.2s;
+}
+
+.inputGroup input:focus {
+  outline: none;
+  background-color: white;
+  border-color: #830021; /* Cor da marca */
+  box-shadow: 0 0 0 3px rgba(131, 0, 33, 0.1);
+}
+
+.addButton {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%); /* Verde Sucesso */
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 6px rgba(25, 135, 84, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+  height: 48px; /* Alinha altura com o input */
+}
+
+.addButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(25, 135, 84, 0.3);
+}
+
+/* Mensagens de Erro */
+.errorMessage {
+  margin-top: 1rem;
+  background-color: #f8d7da;
+  color: #842029;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #f5c2c7;
+  animation: slideDown 0.3s ease;
+}
+
+/* Grid de Convênios */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 5px solid #830021; /* Identidade visual */
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+}
+
+.cardContent h4 {
+  margin: 0 0 0.3rem 0;
+  color: #343a40;
+  font-size: 1.1rem;
+}
+
+.cardContent small {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.deleteButton {
+  background: transparent;
+  border: none;
+  color: #adb5bd;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteButton:hover {
+  background-color: #fee2e2;
+  color: #dc3545;
+}
+
+.loading, .emptyState {
+  text-align: center;
+  color: #6c757d;
+  margin-top: 2rem;
+  font-style: italic;
+}
+
+/* Animação suave */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsivo para celular */
+@media (max-width: 600px) {
+  .formRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .addButton {
+    justify-content: center;
+  }
+}
+
+.card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 5px solid #830021;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.viewButton {
+  background: transparent;
+  border: none;
+  color: #0d6efd; /* Azul */
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.viewButton:hover {
+  background-color: #e7f1ff;
+  color: #0a58ca;
+}
+
+.deleteButton {
+  background: transparent;
+  border: none;
+  color: #adb5bd;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.deleteButton:hover {
+  background-color: #fee2e2;
+  color: #dc3545;
+}

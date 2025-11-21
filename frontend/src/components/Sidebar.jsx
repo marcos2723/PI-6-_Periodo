@@ -1,18 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import logoCardio from '../assets/images/logo_cardio.png'; 
 import styles from './Sidebar.module.css';
-import { FaClipboardList } from 'react-icons/fa';
 import { 
   FaTachometerAlt, 
   FaUserInjured, 
   FaCalendarAlt, 
   FaCoins, 
   FaBoxes, 
-  FaUserMd // <--- Adicionei este ícone novo
+  FaUserMd,
+  FaFileMedical,
+  FaClipboardList,
+  FaChevronDown, // Ícone seta para baixo
+  FaChevronUp    // Ícone seta para cima
 } from 'react-icons/fa';
 
 const Sidebar = () => {
+  // Estado para controlar quais menus estão abertos
+  const [openMenus, setOpenMenus] = useState({
+    financeiro: false,
+    estoque: false
+  });
+
+  // Função para alternar (abrir/fechar)
+  const toggleMenu = (menuKey) => {
+    setOpenMenus(prev => ({
+      ...prev,
+      [menuKey]: !prev[menuKey]
+    }));
+  };
+
   return (
     <nav className={styles.sidebar}>
       <div className={styles.sidebarHeader}>
@@ -32,6 +49,13 @@ const Sidebar = () => {
             <FaUserInjured /> <span>Pacientes</span>
           </NavLink>
         </li>
+
+        <li>
+          <NavLink to="/cadastros/convenios" className={({ isActive }) => isActive ? styles.activeLink : styles.navLink}>
+            <FaFileMedical/> <span>Convênios</span>
+          </NavLink>
+        </li>
+
         <li>
           <NavLink to="/agenda" className={({ isActive }) => isActive ? styles.activeLink : styles.navLink}>
             <FaCalendarAlt /> <span>Agenda</span>
@@ -40,41 +64,62 @@ const Sidebar = () => {
 
         <li className={styles.navHeading}>Administrativo</li>
 
-        {/* --- NOVO ITEM: MÉDICOS --- */}
         <li>
           <NavLink to="/medicos" className={({ isActive }) => isActive ? styles.activeLink : styles.navLink}>
             <FaUserMd /> <span>Médicos</span>
           </NavLink>
         </li>
 
-        {/* --- Seção Financeiro --- */}
+        {/* --- Seção Financeiro (Com Toggle) --- */}
         <li>
-          <div className={styles.navLink}>
-            <FaCoins /> <span>Financeiro</span>
+          <div 
+            className={styles.navLink} 
+            onClick={() => toggleMenu('financeiro')}
+            style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+          >
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <FaCoins /> <span>Financeiro</span>
+            </div>
+            {/* Mostra seta para cima se aberto, para baixo se fechado */}
+            {openMenus.financeiro ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
           </div>
-          <ul className={styles.submenu}>
-            <li><NavLink to="/financeiro/VisaoGeral" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Visão Geral</NavLink></li>
-            <li><NavLink to="/financeiro/ConfiguracoesFinanceiras" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Configurações Financeiras</NavLink></li>
-            <li><NavLink to="/financeiro/Lancamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Lançamentos</NavLink></li>
-            <li><NavLink to="/financeiro/Orcamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Orçamentos</NavLink></li>
-            <li>
-              <NavLink to="/logs" className={({ isActive }) => isActive ? styles.activeLink : styles.navLink}>
-                <FaClipboardList /> <span>Logs do Sistema</span>
-              </NavLink>
-            </li>
-          </ul>
+
+          {/* Só renderiza a lista se o estado for true */}
+          {openMenus.financeiro && (
+            <ul className={styles.submenu}>
+              <li><NavLink to="/financeiro/VisaoGeral" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Visão Geral</NavLink></li>
+              <li><NavLink to="/financeiro/ConfiguracoesFinanceiras" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Configurações</NavLink></li>
+              <li><NavLink to="/financeiro/Lancamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Lançamentos</NavLink></li>
+              <li><NavLink to="/financeiro/Orcamentos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Orçamentos</NavLink></li>
+              <li>
+                <NavLink to="/logs" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>
+                   <span style={{display: 'flex', alignItems: 'center', gap: '10px'}}><FaClipboardList /> Logs do Sistema</span>
+                </NavLink>
+              </li>
+            </ul>
+          )}
         </li>
         
-        {/* --- Seção Estoque --- */}
+        {/* --- Seção Estoque (Com Toggle) --- */}
         <li>
-          <div className={styles.navLink}>
-            <FaBoxes /> <span>Estoque</span>
+          <div 
+            className={styles.navLink} 
+            onClick={() => toggleMenu('estoque')}
+            style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+          >
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <FaBoxes /> <span>Estoque</span>
+            </div>
+            {openMenus.estoque ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
           </div>
-          <ul className={styles.submenu}>
-            <li><NavLink to="/estoque/produtos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Produtos</NavLink></li>
-            <li><NavLink to="/estoque/entrada" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Entrada de Estoque</NavLink></li>
-            <li><NavLink to="/estoque/saida" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Saída de Estoque</NavLink></li>
-          </ul>
+
+          {openMenus.estoque && (
+            <ul className={styles.submenu}>
+              <li><NavLink to="/estoque/produtos" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Produtos</NavLink></li>
+              <li><NavLink to="/estoque/entrada" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Entrada</NavLink></li>
+              <li><NavLink to="/estoque/saida" className={({ isActive }) => isActive ? styles.activeSubLink : styles.subNavLink}>Saída</NavLink></li>
+            </ul>
+          )}
         </li>
       </ul>
     </nav>

@@ -21,6 +21,7 @@ import Medicos from './components/medicos/Medicos';
 import Logs from './components/logs/Logs';
 import Configuracoes from './components/configuracoes.jsx';
 import ConfiguracoesFinanceiras from './components/Financeiro/ConfiguracoesFinanceiras.jsx';
+import Convenios from './components/cadastros/Convenios.jsx';
 
 // Estilos globais
 import './App.css'; 
@@ -50,6 +51,9 @@ const MainLayout = ({ onLogout }) => (
         {/* Estava: element={<><Header ... /><Configuracoes /></>} */}
         {/* Ficou apenas o componente, pois o Header já está no topo do layout */}
         <Route path="/configuracoes" element={<Configuracoes />} />
+
+        {/* TELA DE CONVENIO */}
+        <Route path="/cadastros/convenios" element={<Convenios />} />
 
         {/* Rotas do Estoque */}
         <Route path="/estoque/produtos" element={<Produtos />} />
